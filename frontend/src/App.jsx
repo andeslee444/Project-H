@@ -114,7 +114,7 @@ const RoleBasedRedirect = () => {
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <Router basename="/Project-H">
         <DebugInfo />
         <RoleBasedRedirect />
         <Routes>
