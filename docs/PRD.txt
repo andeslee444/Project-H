@@ -1,0 +1,131 @@
+Product Requirements Document (PRD)
+
+Business Problem
+
+Mental health practices frequently experience last-minute patient cancellations, resulting in empty appointment slots. For practices with long waitlists, these cancellations cause revenue loss, provider dissatisfaction, and potential patient attrition. If providers are paid regardless, financial burdens increase for practices. Conversely, if providers are unpaid for empty slots, practices risk provider turnover.
+
+Product Vision
+
+A specialized scheduling and waitlist management app for mental health clinics, streamlining patient-provider matches based on cancellations, preferences, and demographics, significantly reducing appointment gaps and maximizing provider utilization and patient satisfaction.
+
+MVP Core Requirements
+
+Onboarding:
+
+Practices: Set up provider profiles, specialties, existing waitlists, and initial integration preferences.
+
+Patients: Account creation, input demographic and care preferences, manage privacy settings.
+
+Practice Functionality:
+
+Waitlist Management:
+
+Easily add/remove patients based on insurance, appointment status, diagnosis, age, or other custom criteria.
+
+Real-time accurate waitlist views.
+
+Schedule Management:
+
+Input and manage provider appointment gaps easily.
+
+Matching Logic:
+
+Match patients and providers based on specialties, patient demographics, provider modalities (e.g., CBT, DBT), telehealth preferences, provider experience level, and customized practice-set priority criteria.
+
+Patient Communication:
+
+Secure, HIPAA-compliant messaging (optional).
+
+Accept or decline patient requests quickly.
+
+Automatic notifications when slots fill.
+
+Analytics:
+
+Track revenue and hours recaptured, average time to fill slots, waitlist conversion rate, and provider utilization.
+
+Patient Functionality:
+
+Appointment Management:
+
+Easily update demographics and care preferences.
+
+Clear visibility into provider availability.
+
+Communication and Transparency:
+
+Receive real-time notifications for openings and confirmations.
+
+Request removal from waitlists.
+
+View estimated waitlist positions and changes clearly.
+
+Provide feedback when declining appointment slots.
+
+Additional Functional Considerations:
+
+HIPAA Compliance: Data encryption, secure access controls, audit logs, and Business Associate Agreements (BAAs).
+
+Indicate clearly all bookings are requests pending practice confirmation.
+
+Future integration capability with Electronic Health Record (EHR) systems.
+
+Validation checks to prevent scheduling errors.
+
+Timely practice notifications for patient requests.
+
+Robust handling for patient no-shows from re-booked appointments (impacting future waitlist prioritization).
+
+Defined user roles and permissions (admin, scheduler, provider).
+
+Technical and Developmental Needs
+
+Front-end application design (Web and Mobile).
+
+Intuitive, responsive, and accessible (WCAG compliant) UI/UX.
+
+Backend development ensuring robust data handling, scalability, low latency, and full HIPAA compliance.
+
+APIs and future-proof interoperability (FHIR standards).
+
+Real-time SMS/Email notification system.
+
+Reliable and scalable database infrastructure.
+
+Competitive Differentiation
+
+Mental health-specific solution, unlike generic scheduling apps.
+
+Advanced matching and filtering (patient demographics, conditions, provider competencies).
+
+Automated and intuitive workflows specifically tailored for mental health providers and patients.
+
+Affordable, transparent pricing model.
+
+Target Market Definition
+
+Solo practitioners to small group practices.
+
+Includes therapists, psychologists, psychiatrists, counselors, social workers.
+
+Product Scope Clarification
+
+Initially focused on existing patient waitlist management and internal cancellations.
+
+Future expansion to broader patient acquisition similar to platforms like Zocdoc.
+
+Competitive Landscape Insights
+
+Weave: SMS service lacking advanced filters.
+
+NexHealth: Comprehensive but dental-focused, manual waitlist management.
+
+Doctible & Relatient: General healthcare engagement tools, limited specialty-specific functionalities.
+
+Key Differentiators
+
+Highly specialized mental health matching system.
+
+Minimal manual intervention, maximizing automation efficiency.
+
+High transparency and trust in waitlist management accuracy.

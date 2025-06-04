@@ -1,0 +1,169 @@
+.patient-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.patient-header {
+  background-color: #3498db;
+  color: white;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.patient-header .logo {
+  display: flex;
+  align-items: center;
+}
+
+.patient-header .logo a {
+  text-decoration: none;
+  color: white;
+}
+
+.patient-header .logo h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.patient-header .logo p {
+  margin: 0;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.patient-header .user-info {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.patient-header .notifications {
+  position: relative;
+}
+
+.patient-header .notification-icon {
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.patient-header .notification-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #e74c3c;
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+
+.patient-header .user {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.patient-header .user-avatar {
+  font-size: 1.2rem;
+}
+
+.patient-header .user-name {
+  font-weight: bold;
+}
+
+.patient-header .logout-button {
+  background-color: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 0.5rem;
+  transition: background-color 0.2s ease;
+}
+
+.patient-header .logout-button:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.patient-content {
+  display: flex;
+  flex: 1;
+  background-color: #f5f7fa;
+}
+
+.patient-sidebar {
+  width: 250px;
+  background-color: #2c3e50;
+  color: white;
+  padding: 1.5rem 0;
+}
+
+.patient-sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.patient-sidebar li {
+  margin-bottom: 0.5rem;
+}
+
+.patient-sidebar a {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  color: #ecf0f1;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+.patient-sidebar a:hover {
+  background-color: #34495e;
+}
+
+.patient-sidebar a.active {
+  background-color: #3498db;
+  color: white;
+}
+
+.patient-sidebar .icon {
+  margin-right: 0.75rem;
+  font-size: 1.2rem;
+  width: 24px;
+  text-align: center;
+}
+
+.patient-main {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  .patient-content {
+    flex-direction: column;
+  }
+  
+  .patient-sidebar {
+    width: 100%;
+    padding: 0.5rem 0;
+  }
+  
+  .patient-sidebar a {
+    padding: 0.5rem 1rem;
+  }
+  
+  .patient-main {
+    padding: 1rem;
+  }
+}

@@ -1,0 +1,253 @@
+.patient-dashboard {
+  padding: 1rem;
+}
+
+.patient-dashboard h1 {
+  margin-bottom: 1.5rem;
+  color: #2c3e50;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+  gap: 1.5rem;
+}
+
+.dashboard-card {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+}
+
+.dashboard-card h2 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #3498db;
+  font-size: 1.2rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.5rem;
+}
+
+/* Appointments styling */
+.appointments-list {
+  margin-bottom: 1rem;
+}
+
+.appointment-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.appointment-date {
+  flex: 0 0 100px;
+  text-align: center;
+  padding-right: 1rem;
+  border-right: 1px solid #eee;
+}
+
+.appointment-date .date {
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.appointment-date .time {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+}
+
+.appointment-details {
+  flex: 1;
+  padding: 0 1rem;
+}
+
+.appointment-details .provider {
+  font-weight: bold;
+}
+
+.appointment-details .type {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+}
+
+.appointment-details .status {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+.appointment-details .status.confirmed {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.appointment-details .status.pending {
+  background-color: #fff8e1;
+  color: #f57f17;
+}
+
+.appointment-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Waitlist styling */
+.waitlist-status {
+  margin-bottom: 1rem;
+}
+
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.status-item .label {
+  font-weight: bold;
+  color: #7f8c8d;
+}
+
+.status-item .value {
+  color: #2c3e50;
+}
+
+/* Messages styling */
+.messages-list {
+  margin-bottom: 1rem;
+}
+
+.message-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.message-item.unread {
+  background-color: #f8f9fa;
+}
+
+.message-icon {
+  flex: 0 0 40px;
+  text-align: center;
+  font-size: 1.2rem;
+}
+
+.message-content {
+  flex: 1;
+  padding: 0 1rem;
+}
+
+.message-content .message-from {
+  font-weight: bold;
+}
+
+.message-content .message-subject {
+  font-size: 0.9rem;
+}
+
+.message-content .message-date {
+  font-size: 0.8rem;
+  color: #7f8c8d;
+}
+
+.message-action {
+  flex: 0 0 60px;
+}
+
+/* Quick actions styling */
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.action-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-button:hover {
+  background-color: #e9ecef;
+  transform: translateY(-2px);
+}
+
+.action-button .icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.action-button .text {
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* Button styling */
+.btn-primary, .btn-secondary, .btn-reschedule, .btn-cancel, .btn-view {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+
+.btn-primary {
+  background-color: #3498db;
+  color: white;
+  width: 100%;
+}
+
+.btn-primary:hover {
+  background-color: #2980b9;
+}
+
+.btn-secondary {
+  background-color: #ecf0f1;
+  color: #7f8c8d;
+  width: 100%;
+}
+
+.btn-secondary:hover {
+  background-color: #bdc3c7;
+}
+
+.btn-reschedule {
+  background-color: #3498db;
+  color: white;
+  font-size: 0.8rem;
+}
+
+.btn-cancel {
+  background-color: #e74c3c;
+  color: white;
+  font-size: 0.8rem;
+}
+
+.btn-view {
+  background-color: #ecf0f1;
+  color: #7f8c8d;
+  font-size: 0.8rem;
+}
+
+.no-data {
+  color: #7f8c8d;
+  font-style: italic;
+  text-align: center;
+  padding: 1rem 0;
+}
