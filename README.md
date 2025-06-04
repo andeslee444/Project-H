@@ -2,6 +2,12 @@
 
 A comprehensive scheduling and waitlist management application designed specifically for mental health practices. This system helps reduce appointment gaps by intelligently matching patients from waitlists with last-minute cancellations.
 
+## 🌐 Live Demo
+
+**[View Live Application on GitHub Pages](https://andeslee444.github.io/Project-H/)**
+
+> Experience the patient dashboard with mood tracking, provider management system, and intelligent scheduling features.
+
 ## 🎯 Project Overview
 
 This system addresses the critical problem of last-minute cancellations in mental health practices by:
@@ -13,7 +19,7 @@ This system addresses the critical problem of last-minute cancellations in menta
 ## 📁 Project Structure
 
 ```
-Project H/
+Project-H/
 ├── docs/                    # Documentation
 ├── frontend/               # React frontend application
 │   ├── public/            # Static assets
@@ -49,7 +55,7 @@ Project H/
 
 1. **Clone the repository**
    ```bash
-   cd "Project H"
+   cd "Project-H"
    ```
 
 2. **Install Backend Dependencies**
@@ -144,6 +150,8 @@ Detailed documentation is available in the `docs/` directory:
 - **Quick Booking**: Rapid response to available slots
 - **Preference Management**: Set availability and provider preferences
 - **Mobile Friendly**: Access from any device
+- **📊 Mood Tracking**: GitHub-style contributions chart for emotional wellness monitoring
+- **🎯 Interactive Dashboard**: Modern healthcare UI with seamless mood logging integration
 
 ## 🧪 Testing
 

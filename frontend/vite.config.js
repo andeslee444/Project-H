@@ -4,9 +4,12 @@ import react from '@vitejs/plugin-react'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/Project-H/',  server: {
-    host: '0.0.0.0',
-    port: 3000
+  base: process.env.NODE_ENV === 'production' ? '/Project-H/' : '/',
+  server: {
+    host: 'localhost',
+    port: 5173,
+    open: false,
+    strictPort: false
   },
   build: {
     outDir: 'dist',
