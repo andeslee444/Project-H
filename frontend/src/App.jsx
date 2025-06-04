@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import Dashboard from './pages/Dashboard/Dashboard';
-import PatientDashboard from './pages/PatientDashboard/PatientDashboard';
+import PatientDashboardPage from './pages/PatientDashboard/PatientDashboard';
 import Login from './pages/Login/Login';
 import Register from './pages/Register/Register';
 import Waitlist from './pages/Waitlist/Waitlist';
@@ -13,74 +13,23 @@ import Settings from './pages/Settings/Settings';
 import Layout from './components/layouts/Layout/Layout';
 import PatientLayout from './components/layouts/PatientLayout/PatientLayout';
 
-// Enhanced UI Components
-import EnhancedDashboard from './components/provider/EnhancedDashboard';
-import AdvancedScheduler from './components/provider/AdvancedScheduler';
-import ConsumerDashboard from './components/patient/ConsumerDashboard';
-import BookingFlow from './components/patient/BookingFlow';
+// Enhanced UI Components  
+import ProviderDashboard from './pages/Dashboard/Dashboard';
+import ProviderScheduler from './pages/Schedule/Schedule';
+import PatientDashboard from './components/patient/PatientDashboard';
+import PatientAppointments from './components/patient/PatientAppointments';
+import PatientMessages from './components/patient/PatientMessages';
+import PatientProfile from './components/patient/PatientProfile';
+import PatientBookingFlow from './components/patient/PatientBookingFlow';
 import ComponentShowcase from './components/showcase/ComponentShowcase';
 import { HealthcareToastContainer } from './components/ui/Toast';
+import CSSTest from './components/CSSTest';
 
 import './App.css';
 
-// AuthContext for global state management
-export const AuthContext = React.createContext(null);
-
-export const useAuth = () => React.useContext(AuthContext);
-
-// AuthProvider component
-const AuthProvider = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    const savedAuth = localStorage.getItem('isAuthenticated');
-    return savedAuth ? JSON.parse(savedAuth) : false;
-  });
-  
-  const [userRole, setUserRole] = useState(() => {
-    const savedRole = localStorage.getItem('userRole');
-    return savedRole || '';
-  });
-
-  // Update localStorage when auth state changes
-  useEffect(() => {
-    localStorage.setItem('isAuthenticated', JSON.stringify(isAuthenticated));
-    if (userRole) {
-      localStorage.setItem('userRole', userRole);
-    }
-    
-    // Debug logging
-    console.log('Auth state updated:', isAuthenticated);
-    console.log('User role updated:', userRole);
-  }, [isAuthenticated, userRole]);
-
-  // Login function
-  const login = (email, password, role) => {
-    console.log('Login attempt with role:', role);
-    setIsAuthenticated(true);
-    setUserRole(role);
-    return true;
-  };
-
-  // Logout function
-  const logout = () => {
-    setIsAuthenticated(false);
-    setUserRole('');
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('userRole');
-  };
-
-  const value = {
-    isAuthenticated,
-    userRole,
-    login,
-    logout
-  };
-
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
+// Import the real authentication system
+import { AuthProvider, useAuth } from './hooks/useAuth.jsx';
+import ProtectedRoute from './components/ProtectedRoute';
 
 // Debug component
 const DebugInfo = () => {
@@ -89,7 +38,8 @@ const DebugInfo = () => {
   return (
     <div style={{ position: 'fixed', bottom: 0, right: 0, background: 'rgba(0,0,0,0.7)', color: 'white', padding: '10px', fontSize: '12px', zIndex: 9999 }}>
       <div>isAuthenticated: {auth.isAuthenticated ? 'true' : 'false'}</div>
-      <div>userRole: {auth.userRole}</div>
+      <div>userRole: {auth.user?.role || 'none'}</div>
+      <div>loading: {auth.loading ? 'true' : 'false'}</div>
     </div>
   );
 };
@@ -101,21 +51,25 @@ const RoleBasedRedirect = () => {
   const location = useLocation();
   
   useEffect(() => {
-    if (auth.isAuthenticated) {
-      console.log('RoleBasedRedirect - Current role:', auth.userRole);
+    if (!auth.loading && auth.isAuthenticated && auth.user) {
+      console.log('RoleBasedRedirect - Current role:', auth.user.role);
+      console.log('Current pathname:', location.pathname);
       
       // Only redirect if we're at the root or login page
       if (location.pathname === '/' || location.pathname === '/login') {
-        if (auth.userRole === 'Patient') {
+        if (auth.user.role === 'patient') {
           console.log('Redirecting to patient dashboard');
           navigate('/patient/dashboard', { replace: true });
+        } else if (auth.user.role === 'provider') {
+          console.log('Redirecting to provider dashboard');
+          navigate('/dashboard', { replace: true });
         } else {
           console.log('Redirecting to admin dashboard');
           navigate('/dashboard', { replace: true });
         }
       }
     }
-  }, [auth.isAuthenticated, auth.userRole, navigate, location]);
+  }, [auth.loading, auth.isAuthenticated, auth.user, navigate, location]);
   
   return null;
 };
@@ -123,25 +77,37 @@ const RoleBasedRedirect = () => {
 function App() {
   return (
     <AuthProvider>
-      <Router basename="/Project-H">
+      <Router>
         <DebugInfo />
-        <RoleBasedRedirect />
+        {/* <RoleBasedRedirect /> */}
         <HealthcareToastContainer />
         <Routes>
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/showcase" element={<ComponentShowcase />} />
+          <Route path="/css-test" element={<CSSTest />} />
+          <Route path="/unauthorized" element={
+            <div style={{ padding: '2rem', textAlign: 'center' }}>
+              <h1>Unauthorized</h1>
+              <p>You don't have permission to access this page.</p>
+              <a href="/login">Go to Login</a>
+            </div>
+          } />
           
-          {/* Root redirect */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          {/* Root redirect - for GitHub Pages, go directly to patient dashboard */}
+          <Route path="/" element={<Navigate to="/patient/dashboard" replace />} />
           
           {/* Protected routes for practice staff */}
-          <Route path="/" element={<Layout />}>
-            <Route path="dashboard" element={<EnhancedDashboard />} />
+          <Route path="/" element={
+            <ProtectedRoute allowedRoles={['provider', 'admin']}>
+              <Layout />
+            </ProtectedRoute>
+          }>
+            <Route path="dashboard" element={<ProviderDashboard />} />
             <Route path="dashboard-old" element={<Dashboard />} />
             <Route path="waitlist" element={<Waitlist />} />
-            <Route path="schedule" element={<AdvancedScheduler />} />
+            <Route path="schedule" element={<ProviderScheduler />} />
             <Route path="schedule-old" element={<Schedule />} />
             <Route path="patients" element={<Patients />} />
             <Route path="providers" element={<Providers />} />
@@ -150,12 +116,16 @@ function App() {
           </Route>
           
           {/* Protected routes for patients */}
-          <Route path="/patient" element={<PatientLayout />}>
-            <Route path="dashboard" element={<ConsumerDashboard />} />
-            <Route path="dashboard-old" element={<PatientDashboard />} />
-            <Route path="appointments" element={<div>My Appointments</div>} />
-            <Route path="messages" element={<div>My Messages</div>} />
-            <Route path="profile" element={<div>My Profile</div>} />
+          <Route path="/patient" element={
+            <ProtectedRoute allowedRoles={['patient']}>
+              <PatientLayout />
+            </ProtectedRoute>
+          }>
+            <Route path="dashboard" element={<PatientDashboard />} />
+            <Route path="dashboard-old" element={<PatientDashboardPage />} />
+            <Route path="appointments" element={<PatientAppointments />} />
+            <Route path="messages" element={<PatientMessages />} />
+            <Route path="profile" element={<PatientProfile />} />
           </Route>
           
           {/* Fallback route */}
