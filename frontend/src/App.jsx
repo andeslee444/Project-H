@@ -12,6 +12,15 @@ import Analytics from './pages/Analytics/Analytics';
 import Settings from './pages/Settings/Settings';
 import Layout from './components/layouts/Layout/Layout';
 import PatientLayout from './components/layouts/PatientLayout/PatientLayout';
+
+// Enhanced UI Components
+import EnhancedDashboard from './components/provider/EnhancedDashboard';
+import AdvancedScheduler from './components/provider/AdvancedScheduler';
+import ConsumerDashboard from './components/patient/ConsumerDashboard';
+import BookingFlow from './components/patient/BookingFlow';
+import ComponentShowcase from './components/showcase/ComponentShowcase';
+import { HealthcareToastContainer } from './components/ui/Toast';
+
 import './App.css';
 
 // AuthContext for global state management
@@ -117,19 +126,23 @@ function App() {
       <Router basename="/Project-H">
         <DebugInfo />
         <RoleBasedRedirect />
+        <HealthcareToastContainer />
         <Routes>
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/showcase" element={<ComponentShowcase />} />
           
           {/* Root redirect */}
           <Route path="/" element={<Navigate to="/login" replace />} />
           
           {/* Protected routes for practice staff */}
           <Route path="/" element={<Layout />}>
-            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="dashboard" element={<EnhancedDashboard />} />
+            <Route path="dashboard-old" element={<Dashboard />} />
             <Route path="waitlist" element={<Waitlist />} />
-            <Route path="schedule" element={<Schedule />} />
+            <Route path="schedule" element={<AdvancedScheduler />} />
+            <Route path="schedule-old" element={<Schedule />} />
             <Route path="patients" element={<Patients />} />
             <Route path="providers" element={<Providers />} />
             <Route path="analytics" element={<Analytics />} />
@@ -138,7 +151,8 @@ function App() {
           
           {/* Protected routes for patients */}
           <Route path="/patient" element={<PatientLayout />}>
-            <Route path="dashboard" element={<PatientDashboard />} />
+            <Route path="dashboard" element={<ConsumerDashboard />} />
+            <Route path="dashboard-old" element={<PatientDashboard />} />
             <Route path="appointments" element={<div>My Appointments</div>} />
             <Route path="messages" element={<div>My Messages</div>} />
             <Route path="profile" element={<div>My Profile</div>} />
