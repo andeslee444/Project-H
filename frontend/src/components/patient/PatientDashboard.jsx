@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useAuth } from '../../hooks/useAuth.jsx';
 import MoodTracker from './MoodTracker.jsx';
 
 const PatientDashboard = () => {
-  // For GitHub Pages demo, use mock user data
-  const user = { firstName: 'Sarah' };
+  const { user } = useAuth();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [showMoodTracker, setShowMoodTracker] = useState(false);
 

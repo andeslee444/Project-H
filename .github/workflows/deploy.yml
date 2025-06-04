@@ -43,6 +43,7 @@ jobs:
       working-directory: ./frontend
       env:
         NODE_ENV: production
+        GITHUB_PAGES: true
       run: npm run build
       
     - name: Setup Pages
