@@ -145,14 +145,22 @@ const getMoodColor = (mood) => {
 - Direct navigation to role-specific dashboards based on auth context
 
 ### Server Configuration
-**Ports**:
+**Local Development**:
 - Frontend: http://localhost:5173/ (Vite dev server)
 - Backend: http://localhost:3001/ (Express API)
 
+**GitHub Pages Deployment**:
+- Live Demo: https://andeslee444.github.io/Project-H/
+- Status: ✅ Successfully deployed
+- Last Update: June 4, 2025
+
 **Startup Commands**:
 ```bash
-# Frontend
+# Frontend (Local Development)
 cd frontend && npm run dev
+
+# Frontend (Production Build)
+cd frontend && NODE_ENV=production npm run build
 
 # Backend  
 cd backend && node src/app-simple.js
