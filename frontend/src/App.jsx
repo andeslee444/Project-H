@@ -27,7 +27,7 @@ import PatientProfile from './components/patient/PatientProfile';
 import './App.css';
 
 // Import the mock authentication system (no backend required)
-import { AuthProvider, useAuth } from './hooks/useAuth.js';
+import { AuthProvider, useAuth } from './hooks/useAuth';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Debug component
