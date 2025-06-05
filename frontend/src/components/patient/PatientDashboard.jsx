@@ -6,7 +6,6 @@ import MoodTracker from './MoodTracker.jsx';
 const PatientDashboard = () => {
   const { user } = useAuth();
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [showMoodTracker, setShowMoodTracker] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
@@ -89,7 +88,7 @@ const PatientDashboard = () => {
               <h1 className="text-2xl font-bold text-gray-900">
                 {getGreeting()}, {user?.firstName || 'Patient'} ✨
               </h1>
-              <p className="text-gray-600 mt-1">How are you feeling today? Let's check in on your wellness journey.</p>
+              <p className="text-gray-600 mt-1">How are you feeling today? Let&apos;s check in on your wellness journey.</p>
             </div>
             <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
               <span className="text-2xl text-white font-bold">
@@ -219,7 +218,7 @@ const PatientDashboard = () => {
             <h3 className="text-lg font-semibold text-purple-900">Need Support?</h3>
           </div>
           <p className="text-purple-700 text-sm mb-4">
-            Remember, seeking help is a sign of strength. We're here for you 24/7.
+            Remember, seeking help is a sign of strength. We&apos;re here for you 24/7.
           </p>
           <div className="grid grid-cols-2 gap-3">
             <motion.button

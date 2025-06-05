@@ -381,7 +381,7 @@ const AdvancedScheduler = () => {
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Today's Appointments</p>
+              <p className="text-sm text-gray-600">Today&apos;s Appointments</p>
               <p className="text-2xl font-bold text-gray-900">12</p>
             </div>
             <Icons.Calendar className="w-8 h-8 text-blue-500" />

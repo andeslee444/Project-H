@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import EnhancedDashboard from '../provider/EnhancedDashboard';
-import AdvancedScheduler from '../provider/AdvancedScheduler';
-import ConsumerDashboard from '../patient/ConsumerDashboard';
-import BookingFlow from '../patient/BookingFlow';
+import ProviderDashboard from '../provider/EnhancedDashboard';
+import ProviderScheduler from '../provider/AdvancedScheduler';
+import PatientDashboard from '../patient/PatientDashboard';
+import PatientBookingFlow from '../patient/PatientBookingFlow';
 import { Icons, HealthcareIcons } from '../ui/HealthcareIcons';
 import { healthcareToast } from '../ui/Toast';
 import { HealthcareSkeletons } from '../ui/LoadingSkeletons';
@@ -20,19 +20,19 @@ const ComponentShowcase = () => {
       id: 'provider-dashboard',
       title: '🏥 Provider Dashboard',
       description: 'Enhanced command center for healthcare providers',
-      component: <EnhancedDashboard />
+      component: <ProviderDashboard />
     },
     {
       id: 'provider-scheduler',
-      title: '📅 Advanced Scheduler',
+      title: '📅 Provider Scheduler',
       description: 'Drag-and-drop appointment management',
-      component: <AdvancedScheduler />
+      component: <ProviderScheduler />
     },
     {
       id: 'patient-dashboard',
       title: '📱 Patient Dashboard',
-      description: 'Consumer-grade mobile experience',
-      component: <ConsumerDashboard />
+      description: 'Mobile-first patient experience',
+      component: <PatientDashboard />
     },
     {
       id: 'design-system',
@@ -194,7 +194,7 @@ const ComponentShowcase = () => {
               onClick={() => setShowBookingFlow(true)}
               icon={<Icons.Calendar className="w-4 h-4" />}
             >
-              Launch Booking Flow
+              Launch Patient Booking
             </Button>
           </div>
         </div>
@@ -266,7 +266,7 @@ const ComponentShowcase = () => {
 
       {/* Booking Flow Modal */}
       {showBookingFlow && (
-        <BookingFlow onClose={() => setShowBookingFlow(false)} />
+        <PatientBookingFlow onClose={() => setShowBookingFlow(false)} />
       )}
     </div>
   );

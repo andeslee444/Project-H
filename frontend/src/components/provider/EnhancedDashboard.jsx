@@ -107,12 +107,12 @@ const EnhancedDashboard = () => {
   };
 
   return (
-    <div className="space-y-6 p-6 bg-gray-50 min-h-screen">
+    <div className="space-y-6 p-6 min-h-screen" style={{ backgroundColor: 'var(--bg-light, #F5F7FA)' }}>
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Good morning, Dr. Smith</h1>
-          <p className="text-gray-600">Here's your practice overview for today</p>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-dark, #2D3748)' }}>Good morning, Dr. Smith</h1>
+          <p style={{ color: 'var(--text-light, #718096)' }}>Here&apos;s your practice overview for today</p>
         </div>
         <div className="flex items-center space-x-3">
           {/* Quick Search */}
@@ -138,12 +138,13 @@ const EnhancedDashboard = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-xl shadow-sm p-6 border"
+          className="rounded-xl p-6 border"
+          style={{ backgroundColor: 'var(--bg-white)', boxShadow: 'var(--shadow)' }}
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Appointments</p>
-              <p className={cn("text-3xl font-bold", getStatColor(currentStats.appointments, 'appointments'))}>
+              <p className="text-sm font-medium" style={{ color: 'var(--text-light)' }}>Appointments</p>
+              <p className="text-3xl font-bold" style={{ color: 'var(--primary-color)' }}>
                 {currentStats.appointments}
               </p>
             </div>
@@ -160,7 +161,8 @@ const EnhancedDashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white rounded-xl shadow-sm p-6 border"
+          className="rounded-xl p-6 border"
+          style={{ backgroundColor: 'var(--bg-white)', boxShadow: 'var(--shadow)' }}
         >
           <div className="flex items-center justify-between">
             <div>
@@ -182,7 +184,8 @@ const EnhancedDashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-white rounded-xl shadow-sm p-6 border"
+          className="rounded-xl p-6 border"
+          style={{ backgroundColor: 'var(--bg-white)', boxShadow: 'var(--shadow)' }}
         >
           <div className="flex items-center justify-between">
             <div>
@@ -204,7 +207,8 @@ const EnhancedDashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="bg-white rounded-xl shadow-sm p-6 border"
+          className="rounded-xl p-6 border"
+          style={{ backgroundColor: 'var(--bg-white)', boxShadow: 'var(--shadow)' }}
         >
           <div className="flex items-center justify-between">
             <div>
@@ -233,7 +237,8 @@ const EnhancedDashboard = () => {
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="bg-white rounded-xl shadow-sm p-6 border"
+          className="rounded-xl p-6 border"
+          style={{ backgroundColor: 'var(--bg-white)', boxShadow: 'var(--shadow)' }}
         >
           <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
             <Icons.AlertTriangle className="w-5 h-5 text-orange-500 mr-2" />
@@ -281,7 +286,7 @@ const EnhancedDashboard = () => {
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900 flex items-center">
               <Icons.Calendar className="w-5 h-5 text-blue-500 mr-2" />
-              Today's Schedule
+              Today&apos;s Schedule
             </h3>
             <div className="flex items-center space-x-2">
               <button className="px-3 py-1 text-sm rounded-md bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors">

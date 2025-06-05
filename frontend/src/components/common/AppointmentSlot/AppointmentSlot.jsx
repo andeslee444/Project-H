@@ -238,4 +238,4 @@ class AppointmentSlot {
   }
 }
 
-module.exports = AppointmentSlot;
+export default AppointmentSlot;
