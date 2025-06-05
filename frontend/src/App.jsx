@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './pages/Dashboard/Dashboard';
 import PatientDashboardPage from './pages/PatientDashboard/PatientDashboard';
 import Login from './pages/Login/Login';
@@ -20,7 +20,6 @@ import PatientDashboard from './components/patient/PatientDashboard';
 import PatientAppointments from './components/patient/PatientAppointments';
 import PatientMessages from './components/patient/PatientMessages';
 import PatientProfile from './components/patient/PatientProfile';
-import PatientBookingFlow from './components/patient/PatientBookingFlow';
 import ComponentShowcase from './components/showcase/ComponentShowcase';
 import { HealthcareToastContainer } from './components/ui/Toast';
 import CSSTest from './components/CSSTest';
@@ -44,35 +43,6 @@ const DebugInfo = () => {
   );
 };
 
-// Redirect component based on role
-const RoleBasedRedirect = () => {
-  const auth = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  
-  useEffect(() => {
-    if (!auth.loading && auth.isAuthenticated && auth.user) {
-      console.log('RoleBasedRedirect - Current role:', auth.user.role);
-      console.log('Current pathname:', location.pathname);
-      
-      // Only redirect if we're at the root or login page
-      if (location.pathname === '/' || location.pathname === '/login') {
-        if (auth.user.role === 'patient') {
-          console.log('Redirecting to patient dashboard');
-          navigate('/patient/dashboard', { replace: true });
-        } else if (auth.user.role === 'provider') {
-          console.log('Redirecting to provider dashboard');
-          navigate('/dashboard', { replace: true });
-        } else {
-          console.log('Redirecting to admin dashboard');
-          navigate('/dashboard', { replace: true });
-        }
-      }
-    }
-  }, [auth.loading, auth.isAuthenticated, auth.user, navigate, location]);
-  
-  return null;
-};
 
 function App() {
   return (
@@ -90,7 +60,7 @@ function App() {
           <Route path="/unauthorized" element={
             <div style={{ padding: '2rem', textAlign: 'center' }}>
               <h1>Unauthorized</h1>
-              <p>You don't have permission to access this page.</p>
+              <p>You don&apos;t have permission to access this page.</p>
               <a href="/login">Go to Login</a>
             </div>
           } />

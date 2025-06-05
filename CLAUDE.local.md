@@ -93,6 +93,16 @@ npm run test:e2e
 - **Data Structure**: 12-week grid (84 days) with mood scale 1-10
 - **Color Psychology**: Green (good mood) to Red (poor mood) spectrum
 
+### Patient Portal Navigation (June 2024)
+**Feature**: Bottom navigation bar for mobile-first patient experience
+
+**Implementation**:
+- **PatientLayout.jsx**: Fixed bottom navigation with 4 main sections
+- **Navigation Items**: Home, Appointments, Messages, Profile
+- **Active State**: Blue indicator bar with spring animations
+- **Page Components**: Complete implementations for all navigation destinations
+- **Design Pattern**: No sidebars, clean mobile-first approach
+
 **UI/UX Patterns**:
 - Modal-based mood entry with 1-10 scale buttons
 - GitHub-style contributions grid with hover tooltips
@@ -150,8 +160,9 @@ const getMoodColor = (mood) => {
 - Backend: http://localhost:3001/ (Express API)
 
 **GitHub Pages Deployment**:
-- Live Demo: https://andeslee444.github.io/Project-H/
-- Status: ✅ Successfully deployed
+- Live App: https://andeslee444.github.io/Project-H/
+- Status: ✅ Full production app deployed (no demo limitations)
+- Features: Complete authentication, login, logout, all pages
 - Last Update: June 4, 2025
 
 **Startup Commands**:

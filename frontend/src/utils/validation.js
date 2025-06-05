@@ -27,13 +27,13 @@ export const healthcareValidation = {
       .max(255, 'Email must be less than 255 characters'),
     
     phone: z.string()
-      .regex(/^\+?[\d\s\-\(\)]+$/, 'Please enter a valid phone number')
+      .regex(/^\+?[\d\s\-()]+$/, 'Please enter a valid phone number')
       .min(10, 'Phone number must be at least 10 digits')
       .max(20, 'Phone number must be less than 20 digits'),
     
     emergencyContact: z.object({
       name: z.string().min(1, 'Emergency contact name is required'),
-      phone: z.string().regex(/^\+?[\d\s\-\(\)]+$/, 'Please enter a valid phone number'),
+      phone: z.string().regex(/^\+?[\d\s\-()]+$/, 'Please enter a valid phone number'),
       relationship: z.string().min(1, 'Relationship is required')
     }),
     
@@ -111,7 +111,7 @@ export const healthcareValidation = {
       .regex(/^[A-Z0-9-]+$/, 'License number format is invalid'),
     
     email: z.string().email('Please enter a valid email address'),
-    phone: z.string().regex(/^\+?[\d\s\-\(\)]+$/, 'Please enter a valid phone number'),
+    phone: z.string().regex(/^\+?[\d\s\-()]+$/, 'Please enter a valid phone number'),
     
     availability: z.object({
       monday: z.object({ start: z.string(), end: z.string() }).optional(),
@@ -228,7 +228,7 @@ export const healthcareValidation = {
   emergencyContact: z.object({
     name: z.string().min(1, 'Name is required'),
     relationship: z.string().min(1, 'Relationship is required'),
-    phone: z.string().regex(/^\+?[\d\s\-\(\)]+$/, 'Please enter a valid phone number'),
+    phone: z.string().regex(/^\+?[\d\s\-()]+$/, 'Please enter a valid phone number'),
     email: z.string().email().optional(),
     isPrimary: z.boolean().default(false)
   })
