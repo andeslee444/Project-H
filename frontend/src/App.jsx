@@ -14,19 +14,20 @@ import Layout from './components/layouts/Layout/Layout';
 import PatientLayout from './components/layouts/PatientLayout/PatientLayout';
 
 // Enhanced UI Components  
+// import ProviderDashboard from './components/provider/EnhancedDashboard';
 import ProviderDashboard from './pages/Dashboard/Dashboard';
-import ProviderScheduler from './pages/Schedule/Schedule';
+import ProviderScheduler from './components/provider/AdvancedScheduler';
 import PatientDashboard from './components/patient/PatientDashboard';
 import PatientAppointments from './components/patient/PatientAppointments';
 import PatientMessages from './components/patient/PatientMessages';
 import PatientProfile from './components/patient/PatientProfile';
-import ComponentShowcase from './components/showcase/ComponentShowcase';
-import { HealthcareToastContainer } from './components/ui/Toast';
+// import ComponentShowcase from './components/showcase/ComponentShowcase';
+// import { HealthcareToastContainer } from './components/ui/Toast';
 
 import './App.css';
 
-// Import the real authentication system
-import { AuthProvider, useAuth } from './hooks/useAuth.jsx';
+// Import the mock authentication system (no backend required)
+import { AuthProvider, useAuth } from './hooks/useAuth-mock.jsx';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Debug component
@@ -44,17 +45,19 @@ const DebugInfo = () => {
 
 
 function App() {
+  console.log('App.jsx rendering');
+  
   return (
     <AuthProvider>
       <Router>
         <DebugInfo />
         {/* <RoleBasedRedirect /> */}
-        <HealthcareToastContainer />
+        {/* <HealthcareToastContainer /> */}
         <Routes>
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/showcase" element={<ComponentShowcase />} />
+          {/* <Route path="/showcase" element={<ComponentShowcase />} /> */}
           <Route path="/unauthorized" element={
             <div style={{ padding: '2rem', textAlign: 'center' }}>
               <h1>Unauthorized</h1>
@@ -63,8 +66,8 @@ function App() {
             </div>
           } />
           
-          {/* Root redirect - for GitHub Pages, go directly to patient dashboard */}
-          <Route path="/" element={<Navigate to="/patient/dashboard" replace />} />
+          {/* Root redirect - for GitHub Pages, go to login first */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
           
           {/* Protected routes for practice staff */}
           <Route path="/" element={

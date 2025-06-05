@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth.jsx';
+import { useAuth } from '../../hooks/useAuth-mock.jsx';
 import './Login.css';
 
 const Login = () => {
@@ -26,18 +26,28 @@ const Login = () => {
     }
     
     // Simulate API call delay for better UX
-    setTimeout(() => {
-      const success = auth.login(email, password, role);
-      
-      if (success) {
-        // Navigation based on role
-        if (role === 'Patient') {
-          navigate('/patient/dashboard');
+    setTimeout(async () => {
+      try {
+        const success = await auth.login({
+          email,
+          firstName: 'Demo',
+          lastName: role === 'Patient' ? 'Patient' : 'Provider',
+          role: role === 'Patient' ? 'patient' : 'provider',
+          id: '1'
+        });
+        
+        if (success) {
+          // Navigation based on role
+          if (role === 'Patient') {
+            navigate('/patient/dashboard');
+          } else {
+            navigate('/dashboard');
+          }
         } else {
-          navigate('/dashboard');
+          setError('Invalid email or password. Please try again.');
         }
-      } else {
-        setError('Invalid email or password. Please try again.');
+      } catch (error) {
+        setError('Login failed. Please try again.');
       }
       setIsLoading(false);
     }, 800);

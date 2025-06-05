@@ -91,15 +91,15 @@ html, body {
   animation: slideUp 0.3s ease-out;
 }
 
-/* Dark mode support (future enhancement) */
-@media (prefers-color-scheme: dark) {
+/* Dark mode support (disabled for now) */
+/* @media (prefers-color-scheme: dark) {
   :root {
     --text-dark: #F7FAFC;
     --text-light: #A0AEC0;
     --bg-light: #1A202C;
     --bg-white: #2D3748;
   }
-}
+} */
 
 /* Smooth scrolling */
 html {

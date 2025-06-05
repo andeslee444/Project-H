@@ -27,12 +27,11 @@ import {
   TrashIcon,
   ShareIcon,
   PrinterIcon,
-  DownloadIcon,
-  UploadIcon,
-  RefreshIcon,
+  ArrowDownTrayIcon as DownloadIcon,
+  ArrowUpTrayIcon as UploadIcon,
+  ArrowPathIcon as RefreshIcon,
   HomeIcon,
-  BuildingOfficeIcon,
-  StethoscopeIcon
+  BuildingOfficeIcon
 } from '@heroicons/react/24/outline';
 
 import {
