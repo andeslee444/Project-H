@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 // Try basic imports first
-import { AuthProvider, useAuth } from './hooks/useAuth-mock.jsx';
+import { AuthProvider, useAuth } from './hooks/useAuth';
 
 // Debug components
 const TestLogin = () => {

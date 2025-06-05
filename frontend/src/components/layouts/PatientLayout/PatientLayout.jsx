@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, useNavigate, useLocation, NavLink } from 'react-router-dom';
-import { useAuth } from '../../../hooks/useAuth-mock.jsx';
+import { useAuth } from '../../../hooks/useAuth';
 import { motion } from 'framer-motion';
 
 const PatientLayout = () => {

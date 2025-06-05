@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 
 // Import the mock authentication system (no backend required)
-import { AuthProvider, useAuth } from './hooks/useAuth-mock.jsx';
+import { AuthProvider, useAuth } from './hooks/useAuth';
 
 // Import patient components
 import PatientDashboard from './components/patient/PatientDashboard.jsx';
