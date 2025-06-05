@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../../../App';
+import { useAuth } from '../../../hooks/useAuth.jsx';
 import './Layout.css';
 
 const Layout = () => {

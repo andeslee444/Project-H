@@ -22,7 +22,6 @@ import PatientMessages from './components/patient/PatientMessages';
 import PatientProfile from './components/patient/PatientProfile';
 import ComponentShowcase from './components/showcase/ComponentShowcase';
 import { HealthcareToastContainer } from './components/ui/Toast';
-import CSSTest from './components/CSSTest';
 
 import './App.css';
 
@@ -56,7 +55,6 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/showcase" element={<ComponentShowcase />} />
-          <Route path="/css-test" element={<CSSTest />} />
           <Route path="/unauthorized" element={
             <div style={{ padding: '2rem', textAlign: 'center' }}>
               <h1>Unauthorized</h1>
