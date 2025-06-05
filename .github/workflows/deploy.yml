@@ -37,7 +37,9 @@ jobs:
         
     - name: Install dependencies
       working-directory: ./frontend
-      run: npm ci --prefer-offline
+      run: |
+        rm -rf node_modules
+        npm ci
       
     - name: Check linting (informational)
       working-directory: ./frontend
@@ -48,7 +50,11 @@ jobs:
       env:
         NODE_ENV: production
         GITHUB_PAGES: true
-      run: npm run build
+      run: |
+        echo "Building with NODE_ENV=$NODE_ENV and GITHUB_PAGES=$GITHUB_PAGES"
+        npm run build
+        echo "Build completed. Contents of dist:"
+        ls -la dist/
       
     - name: Setup Pages
       uses: actions/configure-pages@v4
