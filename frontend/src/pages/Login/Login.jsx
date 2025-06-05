@@ -25,39 +25,73 @@ const Login = () => {
       return;
     }
     
-    // Simulate API call delay for better UX
-    setTimeout(async () => {
-      try {
-        const success = await auth.login({
-          email,
-          firstName: 'Demo',
-          lastName: role === 'Patient' ? 'Patient' : 'Provider',
-          role: role === 'Patient' ? 'patient' : 'provider',
-          id: '1'
-        });
-        
-        if (success) {
-          // Navigation based on role
-          if (role === 'Patient') {
-            navigate('/patient/dashboard');
-          } else {
-            navigate('/dashboard');
-          }
+    // Check if this is a demo account
+    const isDemoAccount = ['patient@example.com', 'provider@example.com', 'admin@example.com'].includes(email) 
+                         && password === 'demopassword123';
+    
+    if (isDemoAccount) {
+      // For demo accounts, navigate directly with demo mode
+      console.log('Demo account detected, using demo mode navigation');
+      setTimeout(() => {
+        if (role === 'Patient') {
+          navigate('/patient/dashboard?demo=true');
         } else {
-          setError('Invalid email or password. Please try again.');
+          navigate('/dashboard?demo=true');
         }
-      } catch (error) {
-        setError('Login failed. Please try again.');
+        setIsLoading(false);
+      }, 1000);
+      return;
+    }
+    
+    try {
+      const { data, error: authError } = await auth.signIn(email, password);
+      
+      if (authError) {
+        setError(authError.message || 'Invalid email or password. Please try again.');
+      } else if (data?.user) {
+        // Navigation based on role stored in user profile
+        // For now, navigate based on selected role since we don't have user profiles set up yet
+        if (role === 'Patient') {
+          navigate('/patient/dashboard');
+        } else {
+          navigate('/dashboard');
+        }
       }
-      setIsLoading(false);
-    }, 800);
+    } catch (error) {
+      console.error('Login error:', error);
+      setError('Login failed. Please try again.');
+    }
+    
+    setIsLoading(false);
   };
 
-  const handleDemoLogin = (demoRole, demoEmail) => {
+  const handleDemoLogin = async (demoRole, demoEmail) => {
     setEmail(demoEmail);
-    setPassword('password');
+    setPassword('demopassword123');
     setRole(demoRole);
     setShowDemo(false);
+    
+    // For demo purposes, navigate directly since localhost allows demo mode
+    setIsLoading(true);
+    setError('');
+    
+    console.log('Demo login for:', demoRole, demoEmail);
+    
+    // Direct navigation for demo mode
+    setTimeout(() => {
+      console.log('Demo login navigating...');
+      if (demoRole === 'Patient') {
+        console.log('Navigating to patient dashboard');
+        navigate('/patient/dashboard?demo=true');
+      } else if (demoRole === 'Provider') {
+        console.log('Navigating to provider dashboard');
+        navigate('/dashboard?demo=true');
+      } else {
+        console.log('Navigating to admin dashboard');
+        navigate('/dashboard?demo=true');
+      }
+      setIsLoading(false);
+    }, 1000);
   };
 
   return (

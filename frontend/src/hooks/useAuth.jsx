@@ -1,5 +1,5 @@
 import { createContext, useContext, useReducer, useEffect } from 'react';
-import apiService from '../services/api';
+import { supabase } from '../lib/supabase';
 
 // Auth context
 const AuthContext = createContext();
@@ -49,38 +49,73 @@ const initialState = {
 export function AuthProvider({ children }) {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-  // Check for existing token on mount
+  // Check for existing session on mount
   useEffect(() => {
     const checkAuth = async () => {
-      // Only run in browser environment
-      if (typeof window === 'undefined') {
-        dispatch({ type: 'SET_USER', payload: null });
-        return;
-      }
-      
-      const token = localStorage.getItem('authToken');
-      
-      if (token) {
-        try {
-          const response = await apiService.getProfile();
-          if (response.success) {
-            dispatch({ type: 'SET_USER', payload: response.profile });
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+          dispatch({ type: 'SET_USER', payload: null });
+          return;
+        }
+
+        if (session?.user) {
+          // Get user profile from database
+          const { data: profile, error: profileError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          if (profileError) {
+            console.error('Error fetching user profile:', profileError);
+            // Fallback to metadata role if profile fetch fails
+            const metaRole = session.user.user_metadata?.role || 'user';
+            dispatch({ type: 'SET_USER', payload: { ...session.user, role: metaRole } });
           } else {
-            // Invalid token
-            localStorage.removeItem('authToken');
-            dispatch({ type: 'SET_USER', payload: null });
+            console.log('Initial user profile loaded:', profile);
+            dispatch({ type: 'SET_USER', payload: { ...session.user, ...profile } });
           }
-        } catch (error) {
-          // Token expired or invalid
-          localStorage.removeItem('authToken');
+        } else {
           dispatch({ type: 'SET_USER', payload: null });
         }
-      } else {
+      } catch (error) {
+        console.error('Auth check error:', error);
         dispatch({ type: 'SET_USER', payload: null });
       }
     };
 
     checkAuth();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session?.user) {
+          // Get user profile from database
+          const { data: profile, error: profileError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          if (profileError) {
+            console.error('Error fetching user profile:', profileError);
+            // Fallback to metadata role if profile fetch fails
+            const metaRole = session.user.user_metadata?.role || 'user';
+            dispatch({ type: 'SET_USER', payload: { ...session.user, role: metaRole } });
+          } else {
+            console.log('User profile loaded:', profile);
+            dispatch({ type: 'SET_USER', payload: { ...session.user, ...profile } });
+          }
+        } else {
+          dispatch({ type: 'SET_USER', payload: null });
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const login = async (credentials) => {
@@ -88,20 +123,53 @@ export function AuthProvider({ children }) {
     dispatch({ type: 'CLEAR_ERROR' });
 
     try {
-      const response = await apiService.login(credentials);
-      
-      if (response.success) {
-        console.log('Login successful, setting user:', response.user);
-        dispatch({ type: 'SET_USER', payload: response.user });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: credentials.email,
+        password: credentials.password,
+      });
+
+      if (error) {
+        dispatch({ type: 'SET_ERROR', payload: error.message });
+        return { success: false, error: error.message };
+      }
+
+      if (data.user) {
+        console.log('Login successful, setting user:', data.user);
+        // User state will be updated by the onAuthStateChange listener
         return { success: true };
-      } else {
-        dispatch({ type: 'SET_ERROR', payload: response.error });
-        return { success: false, error: response.error };
       }
     } catch (error) {
-      const errorMessage = error.data?.error || error.message || 'Login failed';
+      const errorMessage = error.message || 'Login failed';
       dispatch({ type: 'SET_ERROR', payload: errorMessage });
       return { success: false, error: errorMessage };
+    }
+  };
+
+  // Add signIn method that Login.jsx expects
+  const signIn = async (email, password) => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'CLEAR_ERROR' });
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        dispatch({ type: 'SET_ERROR', payload: error.message });
+        return { data: null, error };
+      }
+
+      if (data.user) {
+        console.log('Sign in successful:', data.user);
+        // User state will be updated by the onAuthStateChange listener
+        return { data, error: null };
+      }
+    } catch (error) {
+      const errorMessage = error.message || 'Sign in failed';
+      dispatch({ type: 'SET_ERROR', payload: errorMessage });
+      return { data: null, error: { message: errorMessage } };
     }
   };
 
@@ -110,24 +178,40 @@ export function AuthProvider({ children }) {
     dispatch({ type: 'CLEAR_ERROR' });
 
     try {
-      const response = await apiService.register(userData);
-      
-      if (response.success) {
-        dispatch({ type: 'SET_USER', payload: response.user });
+      const { data, error } = await supabase.auth.signUp({
+        email: userData.email,
+        password: userData.password,
+        options: {
+          data: {
+            first_name: userData.firstName,
+            last_name: userData.lastName,
+            role: userData.role || 'patient'
+          }
+        }
+      });
+
+      if (error) {
+        dispatch({ type: 'SET_ERROR', payload: error.message });
+        return { success: false, error: error.message };
+      }
+
+      if (data.user) {
+        console.log('Registration successful:', data.user);
+        // User state will be updated by the onAuthStateChange listener
         return { success: true };
-      } else {
-        dispatch({ type: 'SET_ERROR', payload: response.error });
-        return { success: false, error: response.error };
       }
     } catch (error) {
-      const errorMessage = error.data?.error || error.message || 'Registration failed';
+      const errorMessage = error.message || 'Registration failed';
       dispatch({ type: 'SET_ERROR', payload: errorMessage });
       return { success: false, error: errorMessage };
     }
   };
 
   const logout = async () => {
-    await apiService.logout();
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('Logout error:', error);
+    }
     dispatch({ type: 'LOGOUT' });
   };
 
@@ -135,10 +219,18 @@ export function AuthProvider({ children }) {
     dispatch({ type: 'CLEAR_ERROR' });
 
     try {
-      const response = await apiService.updatePassword(passwordData);
-      return { success: response.success };
+      const { error } = await supabase.auth.updateUser({
+        password: passwordData.password
+      });
+
+      if (error) {
+        dispatch({ type: 'SET_ERROR', payload: error.message });
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
     } catch (error) {
-      const errorMessage = error.data?.error || error.message || 'Password update failed';
+      const errorMessage = error.message || 'Password update failed';
       dispatch({ type: 'SET_ERROR', payload: errorMessage });
       return { success: false, error: errorMessage };
     }
@@ -148,10 +240,15 @@ export function AuthProvider({ children }) {
     dispatch({ type: 'CLEAR_ERROR' });
 
     try {
-      const response = await apiService.forgotPassword(email);
-      return { success: response.success, message: response.message };
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      return { success: true, message: 'Password reset email sent' };
     } catch (error) {
-      const errorMessage = error.data?.error || error.message || 'Request failed';
+      const errorMessage = error.message || 'Request failed';
       return { success: false, error: errorMessage };
     }
   };
@@ -160,10 +257,17 @@ export function AuthProvider({ children }) {
     dispatch({ type: 'CLEAR_ERROR' });
 
     try {
-      const response = await apiService.resetPassword(resetData);
-      return { success: response.success, message: response.message };
+      const { error } = await supabase.auth.updateUser({
+        password: resetData.password
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      return { success: true, message: 'Password updated successfully' };
     } catch (error) {
-      const errorMessage = error.data?.error || error.message || 'Password reset failed';
+      const errorMessage = error.message || 'Password reset failed';
       return { success: false, error: errorMessage };
     }
   };
@@ -175,6 +279,7 @@ export function AuthProvider({ children }) {
   const value = {
     ...state,
     login,
+    signIn,
     register,
     logout,
     updatePassword,
