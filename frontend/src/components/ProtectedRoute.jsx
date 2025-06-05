@@ -5,10 +5,11 @@ import { useAuth } from '../hooks/useAuth';
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { isAuthenticated, user, loading } = useAuth();
 
-  // Demo mode: allow access if URL contains demo params or if we're in development
+  // Demo mode: allow access if URL contains demo params or if we're in development/GitHub Pages
   const isDemoMode = window.location.search.includes('demo=true') || 
                      window.location.hostname === 'localhost' ||
-                     window.location.hostname === '127.0.0.1';
+                     window.location.hostname === '127.0.0.1' ||
+                     window.location.hostname.includes('github.io');
 
   if (loading && !isDemoMode) {
     return <div>Loading...</div>;
