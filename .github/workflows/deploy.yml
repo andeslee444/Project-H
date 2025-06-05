@@ -39,6 +39,10 @@ jobs:
       working-directory: ./frontend
       run: npm ci --prefer-offline
       
+    - name: Check linting (informational)
+      working-directory: ./frontend
+      run: npm run lint || echo "Linting completed with warnings/errors"
+      
     - name: Build
       working-directory: ./frontend
       env:
