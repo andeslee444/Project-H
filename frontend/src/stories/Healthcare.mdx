@@ -1,0 +1,232 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Healthcare/Overview" />
+
+# Healthcare Components
+
+This section contains components specifically designed for healthcare and mental health applications. These components follow HIPAA compliance guidelines and are optimized for medical workflows.
+
+## 🏥 Component Categories
+
+### Patient Components
+- **MoodTracker**: GitHub-style mood visualization and logging
+- **PatientDashboard**: Comprehensive patient portal view
+- **PatientProfile**: Patient information display
+- **BookingFlow**: Multi-step appointment booking
+
+### Provider Components
+- **ProviderDashboard**: Provider's daily schedule and patient list
+- **AdvancedScheduler**: Complex scheduling with availability management
+- **AppointmentSlot**: Individual appointment representation
+
+### Clinical Components
+- **VitalSigns**: Display and input for patient vitals
+- **MedicationList**: Medication management interface
+- **TreatmentPlan**: Visual treatment timeline
+- **ProgressNotes**: Secure note-taking interface
+
+## 🔒 Security Considerations
+
+All healthcare components implement:
+
+1. **Data Encryption**
+   - All PHI (Protected Health Information) is encrypted at rest
+   - End-to-end encryption for sensitive communications
+
+2. **Access Control**
+   - Role-based permissions (Patient, Provider, Admin)
+   - Session timeout after inactivity
+   - Audit trails for all data access
+
+3. **Input Validation**
+   - Strict validation for all medical data inputs
+   - XSS protection on all text fields
+   - SQL injection prevention
+
+## 📋 HIPAA Compliance Features
+
+### Audit Logging
+```tsx
+// Every component action is logged
+const auditLog = {
+  userId: 'user123',
+  action: 'VIEW_PATIENT_RECORD',
+  patientId: 'patient456',
+  timestamp: new Date().toISOString(),
+  ipAddress: '192.168.1.1',
+  component: 'PatientProfile'
+};
+```
+
+### Data Minimization
+Components only request and display the minimum necessary information:
+
+```tsx
+// Good: Only fetch needed fields
+const { data } = useQuery(['patient', id], () => 
+  fetchPatient(id, { fields: ['name', 'appointments'] })
+);
+
+// Bad: Fetching all patient data
+const { data } = useQuery(['patient', id], () => 
+  fetchPatient(id)
+);
+```
+
+### Secure Communication
+All components use encrypted channels:
+
+```tsx
+// Components automatically use secure endpoints
+<MoodTracker 
+  onSave={async (mood) => {
+    await api.post('/secure/mood', mood, {
+      headers: { 'X-CSRF-Token': csrfToken }
+    });
+  }}
+/>
+```
+
+## 🎨 Design Patterns
+
+### Consistent Status Indicators
+All healthcare components use consistent color coding:
+
+- 🟢 **Green**: Normal, healthy, completed
+- 🟡 **Yellow**: Caution, pending, moderate
+- 🔴 **Red**: Alert, urgent, severe
+- 🔵 **Blue**: Information, scheduled
+- ⚫ **Gray**: Inactive, cancelled
+
+### Accessibility First
+Every component meets WCAG 2.1 AA standards:
+
+- Proper ARIA labels for screen readers
+- Keyboard navigation support
+- High contrast modes
+- Focus indicators
+- Error announcements
+
+### Mobile Optimization
+Healthcare providers often use tablets and phones:
+
+- Touch-friendly tap targets (min 44x44px)
+- Responsive layouts that work on all devices
+- Offline capability for critical features
+- Progressive Web App support
+
+## 📊 Data Visualization
+
+Healthcare data visualization follows these principles:
+
+1. **Clarity Over Complexity**
+   - Simple, intuitive charts
+   - Clear legends and labels
+   - Avoid overwhelming users with data
+
+2. **Actionable Insights**
+   - Highlight trends and anomalies
+   - Provide context for measurements
+   - Enable drill-down for details
+
+3. **Real-time Updates**
+   - Live data refresh for critical metrics
+   - WebSocket connections for instant updates
+   - Optimistic UI updates
+
+## 🔄 Workflow Integration
+
+Components are designed to fit healthcare workflows:
+
+### Appointment Flow
+```
+Patient Selection → Time Slot → Confirmation → Reminder → Check-in → Visit → Follow-up
+```
+
+### Documentation Flow
+```
+Patient Context → Note Creation → Review → Sign → Lock → Audit
+```
+
+### Prescription Flow
+```
+Medication Search → Dosage Selection → Interaction Check → Provider Approval → Patient Education
+```
+
+## 🚀 Performance Optimization
+
+Healthcare apps must be fast and reliable:
+
+- **Lazy Loading**: Components load on-demand
+- **Data Caching**: Smart caching of patient data
+- **Image Optimization**: Medical images are compressed
+- **Bundle Splitting**: Separate bundles for different user roles
+
+## 📱 Example Implementation
+
+Here's how to implement a typical healthcare dashboard:
+
+```tsx
+import { PatientDashboard } from '@/components/patient/dashboard/PatientDashboard';
+import { MoodTracker } from '@/components/patient/MoodTracker';
+import { AppointmentList } from '@/components/patient/AppointmentList';
+import { usePatientData } from '@/hooks/usePatientData';
+
+function PatientPortal() {
+  const { patient, appointments, isLoading } = usePatientData();
+
+  if (isLoading) return <LoadingState />;
+
+  return (
+    <PatientDashboard>
+      <WelcomeCard patient={patient} />
+      <MoodTracker patientId={patient.id} />
+      <AppointmentList 
+        appointments={appointments}
+        onReschedule={handleReschedule}
+      />
+    </PatientDashboard>
+  );
+}
+```
+
+## 🧪 Testing Healthcare Components
+
+Special considerations for testing medical components:
+
+```tsx
+// Test with realistic medical data
+const mockPatient = createMockPatient({
+  conditions: ['anxiety', 'depression'],
+  medications: ['sertraline'],
+  allergies: ['penicillin']
+});
+
+// Test error states
+it('handles API failures gracefully', async () => {
+  server.use(
+    rest.get('/api/patients/:id', (req, res, ctx) => {
+      return res(ctx.status(500));
+    })
+  );
+  
+  render(<PatientProfile patientId="123" />);
+  await screen.findByText(/unable to load patient data/i);
+});
+
+// Test audit logging
+it('logs access to patient records', async () => {
+  render(<PatientProfile patientId="123" />);
+  
+  await waitFor(() => {
+    expect(auditLogger.log).toHaveBeenCalledWith({
+      action: 'VIEW_PATIENT_PROFILE',
+      patientId: '123'
+    });
+  });
+});
+```
+
+---
+
+For specific component documentation, explore the individual stories in the Healthcare section.

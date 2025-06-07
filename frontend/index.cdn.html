@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Mental Health Practice Scheduling and Waitlist Management System" />
+    
+    <!-- Security Headers -->
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net;
+      style-src 'self' 'unsafe-inline';
+      img-src 'self' data: https:;
+      font-src 'self' data:;
+      connect-src 'self' https://*.supabase.co wss://*.supabase.co;
+      frame-ancestors 'none';
+      base-uri 'self';
+      form-action 'self';
+    ">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()">
+    
+    <title>Mental Health Practice Management</title>
+    
+    <!-- Preconnect to CDN domains -->
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    <link rel="dns-prefetch" href="https://unpkg.com">
+    
+    <!-- Critical CSS (inline for performance) -->
+    <style>
+      /* Loading state styles */
+      .app-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background: #f9fafb;
+      }
+      .spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid #e5e7eb;
+        border-top-color: #3b82f6;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/assets/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin>
+    
+    <!-- Load external dependencies from CDN with fallbacks -->
+    <script>
+      // CDN fallback mechanism
+      window.cdnFallbacks = {
+        react: 'https://unpkg.com/react@18/umd/react.production.min.js',
+        'react-dom': 'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js',
+        'react-router-dom': 'https://unpkg.com/react-router-dom@6/dist/react-router-dom.production.min.js'
+      };
+      
+      function loadScript(src, globalName, fallbackSrc) {
+        return new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = src;
+          script.crossOrigin = 'anonymous';
+          
+          script.onload = () => {
+            if (globalName && !window[globalName] && fallbackSrc) {
+              // Primary CDN failed, try fallback
+              loadScript(fallbackSrc, globalName).then(resolve).catch(reject);
+            } else {
+              resolve();
+            }
+          };
+          
+          script.onerror = () => {
+            if (fallbackSrc) {
+              loadScript(fallbackSrc, globalName).then(resolve).catch(reject);
+            } else {
+              reject(new Error(`Failed to load ${src}`));
+            }
+          };
+          
+          document.head.appendChild(script);
+        });
+      }
+    </script>
+    
+    <!-- Load React from CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Resource hints for non-critical resources -->
+    <link rel="prefetch" href="https://unpkg.com/react-router-dom@6/dist/react-router-dom.production.min.js">
+    <link rel="prefetch" href="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js">
+  </head>
+  <body>
+    <div id="root">
+      <!-- Initial loading state -->
+      <div class="app-loading">
+        <div class="spinner"></div>
+      </div>
+    </div>
+    
+    <!-- Error handling for CDN failures -->
+    <script>
+      window.addEventListener('error', function(e) {
+        if (e.target.tagName === 'SCRIPT') {
+          console.error('Script loading failed:', e.target.src);
+          // Log to monitoring service
+          if (window.errorHandler) {
+            window.errorHandler.logError({
+              type: 'cdn_failure',
+              url: e.target.src,
+              timestamp: new Date().toISOString()
+            });
+          }
+        }
+      }, true);
+    </script>
+    
+    <!-- Main application bundle -->
+    <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Service Worker for offline support -->
+    <script>
+      if ('serviceWorker' in navigator && location.hostname !== 'localhost') {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(err => {
+            console.warn('Service Worker registration failed:', err);
+          });
+        });
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,488 @@
+name: Load Testing
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run daily load tests at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Type of load test to run'
+        required: true
+        default: 'smoke'
+        type: choice
+        options:
+          - smoke
+          - load
+          - stress
+          - workflows
+          - hipaa
+          - all
+      environment:
+        description: 'Environment to test'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  NODE_VERSION: '18'
+  K6_VERSION: '0.47.0'
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      test-type: ${{ steps.determine-tests.outputs.test-type }}
+      environment: ${{ steps.determine-tests.outputs.environment }}
+    steps:
+      - name: Determine test configuration
+        id: determine-tests
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "test-type=${{ github.event.inputs.test_type }}" >> $GITHUB_OUTPUT
+            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event_name }}" = "schedule" ]; then
+            echo "test-type=all" >> $GITHUB_OUTPUT
+            echo "environment=staging" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "test-type=smoke" >> $GITHUB_OUTPUT
+            echo "environment=staging" >> $GITHUB_OUTPUT
+          else
+            echo "test-type=smoke" >> $GITHUB_OUTPUT
+            echo "environment=staging" >> $GITHUB_OUTPUT
+          fi
+
+  smoke-tests:
+    runs-on: ubuntu-latest
+    needs: setup
+    if: contains(needs.setup.outputs.test-type, 'smoke') || contains(needs.setup.outputs.test-type, 'all')
+    environment: ${{ needs.setup.outputs.environment }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: load-testing/package-lock.json
+
+      - name: Install K6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Install dependencies
+        run: |
+          cd load-testing
+          npm ci
+
+      - name: Wait for services
+        run: |
+          echo "Waiting for services to be ready..."
+          timeout 300 bash -c 'until curl -f ${{ vars.API_BASE_URL }}/health; do sleep 5; done'
+
+      - name: Run smoke tests
+        env:
+          K6_API_BASE_URL: ${{ vars.API_BASE_URL }}
+          K6_FRONTEND_URL: ${{ vars.FRONTEND_URL }}
+          K6_ENVIRONMENT: ${{ needs.setup.outputs.environment }}
+        run: |
+          cd load-testing
+          chmod +x scripts/run-load-tests.sh
+          ./scripts/run-load-tests.sh --smoke
+
+      - name: Upload smoke test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-test-results-${{ github.run_number }}
+          path: load-testing/results/
+          retention-days: 30
+
+      - name: Upload smoke test reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-test-reports-${{ github.run_number }}
+          path: load-testing/reports/
+          retention-days: 30
+
+  load-tests:
+    runs-on: ubuntu-latest
+    needs: [setup, smoke-tests]
+    if: (contains(needs.setup.outputs.test-type, 'load') || contains(needs.setup.outputs.test-type, 'all')) && success()
+    environment: ${{ needs.setup.outputs.environment }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: load-testing/package-lock.json
+
+      - name: Install K6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Install dependencies
+        run: |
+          cd load-testing
+          npm ci
+
+      - name: Run load tests
+        env:
+          K6_API_BASE_URL: ${{ vars.API_BASE_URL }}
+          K6_FRONTEND_URL: ${{ vars.FRONTEND_URL }}
+          K6_ENVIRONMENT: ${{ needs.setup.outputs.environment }}
+        run: |
+          cd load-testing
+          chmod +x scripts/run-load-tests.sh
+          ./scripts/run-load-tests.sh --load
+
+      - name: Upload load test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: load-test-results-${{ github.run_number }}
+          path: load-testing/results/
+          retention-days: 30
+
+      - name: Check performance thresholds
+        run: |
+          cd load-testing
+          node scripts/check-performance-thresholds.js results/
+
+  stress-tests:
+    runs-on: ubuntu-latest
+    needs: [setup, load-tests]
+    if: (contains(needs.setup.outputs.test-type, 'stress') || contains(needs.setup.outputs.test-type, 'all')) && success()
+    environment: ${{ needs.setup.outputs.environment }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: load-testing/package-lock.json
+
+      - name: Install K6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Install dependencies
+        run: |
+          cd load-testing
+          npm ci
+
+      - name: Run stress tests
+        env:
+          K6_API_BASE_URL: ${{ vars.API_BASE_URL }}
+          K6_FRONTEND_URL: ${{ vars.FRONTEND_URL }}
+          K6_ENVIRONMENT: ${{ needs.setup.outputs.environment }}
+        run: |
+          cd load-testing
+          chmod +x scripts/run-load-tests.sh
+          ./scripts/run-load-tests.sh --stress
+
+      - name: Upload stress test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stress-test-results-${{ github.run_number }}
+          path: load-testing/results/
+          retention-days: 30
+
+  workflow-tests:
+    runs-on: ubuntu-latest
+    needs: [setup, smoke-tests]
+    if: (contains(needs.setup.outputs.test-type, 'workflows') || contains(needs.setup.outputs.test-type, 'all')) && success()
+    environment: ${{ needs.setup.outputs.environment }}
+    
+    strategy:
+      matrix:
+        workflow: [auth, appointment-booking, provider-schedule, waitlist, notifications]
+      fail-fast: false
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: load-testing/package-lock.json
+
+      - name: Install K6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Install dependencies
+        run: |
+          cd load-testing
+          npm ci
+
+      - name: Run workflow tests - ${{ matrix.workflow }}
+        env:
+          K6_API_BASE_URL: ${{ vars.API_BASE_URL }}
+          K6_FRONTEND_URL: ${{ vars.FRONTEND_URL }}
+          K6_ENVIRONMENT: ${{ needs.setup.outputs.environment }}
+        run: |
+          cd load-testing
+          k6 run scenarios/workflows/${{ matrix.workflow }}-workflow.js
+
+      - name: Upload workflow test results - ${{ matrix.workflow }}
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ matrix.workflow }}-workflow-results-${{ github.run_number }}
+          path: load-testing/results/
+          retention-days: 30
+
+  hipaa-compliance-tests:
+    runs-on: ubuntu-latest
+    needs: [setup, smoke-tests]
+    if: (contains(needs.setup.outputs.test-type, 'hipaa') || contains(needs.setup.outputs.test-type, 'all')) && success()
+    environment: ${{ needs.setup.outputs.environment }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: load-testing/package-lock.json
+
+      - name: Install K6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Install dependencies
+        run: |
+          cd load-testing
+          npm ci
+
+      - name: Run HIPAA compliance tests
+        env:
+          K6_API_BASE_URL: ${{ vars.API_BASE_URL }}
+          K6_FRONTEND_URL: ${{ vars.FRONTEND_URL }}
+          K6_ENVIRONMENT: ${{ needs.setup.outputs.environment }}
+        run: |
+          cd load-testing
+          chmod +x scripts/run-load-tests.sh
+          ./scripts/run-load-tests.sh --hipaa
+
+      - name: Upload HIPAA test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hipaa-compliance-results-${{ github.run_number }}
+          path: load-testing/results/
+          retention-days: 90  # Keep HIPAA results longer
+
+      - name: Validate HIPAA compliance
+        run: |
+          cd load-testing
+          if [ -f "scripts/validate-hipaa-compliance.js" ]; then
+            node scripts/validate-hipaa-compliance.js results/
+          fi
+
+  performance-monitoring:
+    runs-on: ubuntu-latest
+    needs: [setup, smoke-tests, load-tests]
+    if: always()
+    environment: ${{ needs.setup.outputs.environment }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all test results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "*-results-${{ github.run_number }}"
+          path: test-results/
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: load-testing/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd load-testing
+          npm ci
+
+      - name: Generate comprehensive report
+        run: |
+          cd load-testing
+          node scripts/generate-comprehensive-report.js ../test-results/ reports/
+
+      - name: Check performance regression
+        run: |
+          cd load-testing
+          if [ -f "scripts/check-performance-regression.js" ]; then
+            node scripts/check-performance-regression.js ../test-results/
+          fi
+
+      - name: Send performance report to monitoring system
+        if: vars.MONITORING_WEBHOOK_URL
+        run: |
+          cd load-testing
+          if [ -f "scripts/send-monitoring-data.js" ]; then
+            node scripts/send-monitoring-data.js ../test-results/ ${{ vars.MONITORING_WEBHOOK_URL }}
+          fi
+
+      - name: Upload comprehensive reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comprehensive-reports-${{ github.run_number }}
+          path: load-testing/reports/
+          retention-days: 90
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: [setup, smoke-tests, load-tests, stress-tests, workflow-tests, hipaa-compliance-tests, performance-monitoring]
+    if: always()
+    
+    steps:
+      - name: Determine overall status
+        id: status
+        run: |
+          if [ "${{ needs.smoke-tests.result }}" = "failure" ]; then
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "message=Smoke tests failed" >> $GITHUB_OUTPUT
+          elif [ "${{ needs.hipaa-compliance-tests.result }}" = "failure" ]; then
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "message=HIPAA compliance tests failed" >> $GITHUB_OUTPUT
+          elif [ "${{ needs.load-tests.result }}" = "failure" ]; then
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "message=Load tests failed" >> $GITHUB_OUTPUT
+          elif [ "${{ needs.workflow-tests.result }}" = "failure" ]; then
+            echo "status=warning" >> $GITHUB_OUTPUT
+            echo "message=Some workflow tests failed" >> $GITHUB_OUTPUT
+          else
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "message=All tests passed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send Slack notification
+        if: vars.SLACK_WEBHOOK_URL
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ steps.status.outputs.status }}
+          channel: '#project-h-alerts'
+          text: |
+            Load Testing Results for Project-H
+            Environment: ${{ needs.setup.outputs.environment }}
+            Status: ${{ steps.status.outputs.message }}
+            
+            Test Results:
+            • Smoke Tests: ${{ needs.smoke-tests.result }}
+            • Load Tests: ${{ needs.load-tests.result }}
+            • Stress Tests: ${{ needs.stress-tests.result }}
+            • Workflow Tests: ${{ needs.workflow-tests.result }}
+            • HIPAA Compliance: ${{ needs.hipaa-compliance-tests.result }}
+            
+            View detailed results: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ vars.SLACK_WEBHOOK_URL }}
+
+      - name: Create GitHub issue on critical failure
+        if: steps.status.outputs.status == 'failure' && (needs.smoke-tests.result == 'failure' || needs.hipaa-compliance-tests.result == 'failure')
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🚨 Critical Load Test Failure - ${{ steps.status.outputs.message }}`,
+              body: `
+              ## Critical Load Testing Failure
+              
+              **Environment:** ${{ needs.setup.outputs.environment }}
+              **Run ID:** ${{ github.run_id }}
+              **Triggered by:** ${{ github.event_name }}
+              
+              ### Failed Tests
+              - Smoke Tests: ${{ needs.smoke-tests.result }}
+              - HIPAA Compliance: ${{ needs.hipaa-compliance-tests.result }}
+              
+              ### Action Required
+              This indicates a critical issue that needs immediate attention.
+              
+              **For HIPAA failures:** Review security and compliance measures immediately.
+              **For smoke test failures:** Basic functionality is broken.
+              
+              ### Links
+              - [Workflow Run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+              - [Test Results](artifacts from this run)
+              
+              **Priority:** High
+              **Labels:** bug, load-testing, critical
+              `,
+              labels: ['bug', 'load-testing', 'critical', 'urgent']
+            })
+
+      - name: Update deployment status
+        if: vars.DEPLOYMENT_STATUS_URL
+        run: |
+          status="${{ steps.status.outputs.status }}"
+          message="${{ steps.status.outputs.message }}"
+          
+          if [ "$status" = "success" ]; then
+            deployment_status="passed"
+          elif [ "$status" = "warning" ]; then
+            deployment_status="warning"
+          else
+            deployment_status="failed"
+          fi
+          
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d "{\"environment\":\"${{ needs.setup.outputs.environment }}\",\"status\":\"$deployment_status\",\"message\":\"$message\",\"run_id\":\"${{ github.run_id }}\"}" \
+            ${{ vars.DEPLOYMENT_STATUS_URL }}

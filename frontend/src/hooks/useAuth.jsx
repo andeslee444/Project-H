@@ -52,6 +52,56 @@ export function AuthProvider({ children }) {
   // Check for existing session on mount
   useEffect(() => {
     const checkAuth = async () => {
+      // First check for demo mode
+      const urlParams = new URLSearchParams(window.location.search);
+      const isDemoMode = urlParams.get('demo') === 'true';
+      const demoEmail = urlParams.get('demoUser');
+      
+      // Demo users configuration
+      const DEMO_USERS = {
+        'admin@example.com': {
+          id: 'demo-admin-001',
+          email: 'admin@example.com',
+          role: 'admin',
+          first_name: 'Demo',
+          last_name: 'Administrator',
+          user_metadata: { role: 'admin' }
+        },
+        'provider@example.com': {
+          id: 'demo-provider-001',
+          email: 'provider@example.com',
+          role: 'provider',
+          first_name: 'Dr. Sarah',
+          last_name: 'Johnson',
+          user_metadata: { role: 'provider' }
+        },
+        'patient@example.com': {
+          id: 'demo-patient-001',
+          email: 'patient@example.com',
+          role: 'patient',
+          first_name: 'Demo',
+          last_name: 'Patient',
+          user_metadata: { role: 'patient' }
+        }
+      };
+      
+      // Check localStorage for persistent demo mode
+      const storedDemoUser = localStorage.getItem('demoUser');
+      const isStoredDemoMode = localStorage.getItem('isDemoMode') === 'true';
+      
+      if ((isDemoMode && demoEmail && DEMO_USERS[demoEmail]) || (isStoredDemoMode && storedDemoUser)) {
+        const demoUser = isDemoMode ? DEMO_USERS[demoEmail] : JSON.parse(storedDemoUser);
+        console.log('Demo mode active, setting demo user:', demoUser);
+        dispatch({ type: 'SET_USER', payload: demoUser });
+        
+        // Store for persistence
+        if (isDemoMode) {
+          localStorage.setItem('demoUser', JSON.stringify(demoUser));
+          localStorage.setItem('isDemoMode', 'true');
+        }
+        return;
+      }
+      
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         
@@ -208,6 +258,10 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
+    // Clear demo mode if active
+    localStorage.removeItem('demoUser');
+    localStorage.removeItem('isDemoMode');
+    
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error('Logout error:', error);

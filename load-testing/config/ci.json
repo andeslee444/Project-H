@@ -1,0 +1,36 @@
+{
+  "scenarios": {
+    "ci_pipeline": {
+      "executor": "ramping-vus",
+      "startVUs": 0,
+      "stages": [
+        { "duration": "30s", "target": 5 },
+        { "duration": "1m", "target": 10 },
+        { "duration": "30s", "target": 0 }
+      ],
+      "gracefulRampDown": "15s"
+    }
+  },
+  "thresholds": {
+    "http_req_duration": [
+      "p(95)<1500",
+      "p(99)<2500"
+    ],
+    "http_req_failed": ["rate<0.02"],
+    "http_reqs": ["rate>5"],
+    "checks": ["rate>0.98"],
+    "iteration_duration": ["p(95)<8000"]
+  },
+  "options": {
+    "noConnectionReuse": false,
+    "userAgent": "K6-LoadTest-CI/1.0",
+    "batch": 10,
+    "batchPerHost": 3
+  },
+  "ext": {
+    "loadimpact": {
+      "name": "Project-H CI Pipeline Test",
+      "note": "Continuous integration validation"
+    }
+  }
+}

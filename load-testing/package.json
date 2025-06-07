@@ -1,0 +1,54 @@
+{
+  "name": "project-h-load-testing",
+  "version": "1.0.0",
+  "description": "K6 Load Testing Suite for Mental Health Practice Scheduling System",
+  "scripts": {
+    "install-k6": "npm run install-k6:macos",
+    "install-k6:macos": "brew install k6",
+    "install-k6:linux": "sudo gpg -k && sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69 && echo 'deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main' | sudo tee /etc/apt/sources.list.d/k6.list && sudo apt-get update && sudo apt-get install k6",
+    "install-k6:windows": "choco install k6",
+    "test:smoke": "k6 run --config config/smoke.json scenarios/smoke-test.js",
+    "test:load": "k6 run --config config/load.json scenarios/load-test.js",
+    "test:stress": "k6 run --config config/stress.json scenarios/stress-test.js",
+    "test:spike": "k6 run --config config/spike.json scenarios/spike-test.js",
+    "test:volume": "k6 run --config config/volume.json scenarios/volume-test.js",
+    "test:soak": "k6 run --config config/soak.json scenarios/soak-test.js",
+    "test:auth": "k6 run scenarios/workflows/auth-workflow.js",
+    "test:booking": "k6 run scenarios/workflows/appointment-booking.js",
+    "test:provider": "k6 run scenarios/workflows/provider-schedule.js",
+    "test:waitlist": "k6 run scenarios/workflows/waitlist-operations.js",
+    "test:notifications": "k6 run scenarios/workflows/notification-system.js",
+    "test:all": "npm run test:smoke && npm run test:load && npm run test:stress",
+    "test:ci": "k6 run --config config/ci.json scenarios/ci-pipeline.js",
+    "test:hipaa": "k6 run scenarios/security/hipaa-compliance.js",
+    "report:html": "k6 run --out json=results/output.json scenarios/load-test.js && node scripts/generate-html-report.js",
+    "report:influx": "k6 run --out influxdb=http://localhost:8086/k6db scenarios/load-test.js",
+    "report:grafana": "docker-compose -f monitoring/docker-compose.yml up -d",
+    "baseline": "k6 run --config config/baseline.json scenarios/baseline-performance.js",
+    "benchmark": "k6 run --config config/benchmark.json scenarios/benchmark-test.js",
+    "clean": "rm -rf results/*.json results/*.html node_modules",
+    "setup": "npm install && mkdir -p results data reports && node scripts/setup-test-data.js",
+    "lint": "eslint scenarios/ scripts/ utils/ --fix",
+    "validate": "node scripts/validate-test-config.js"
+  },
+  "dependencies": {
+    "k6": "^0.47.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.0.0",
+    "eslint-config-standard": "^17.0.0",
+    "faker": "^6.6.6",
+    "lodash": "^4.17.21"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "keywords": [
+    "k6",
+    "load-testing",
+    "performance",
+    "healthcare",
+    "scheduling",
+    "hipaa"
+  ]
+}

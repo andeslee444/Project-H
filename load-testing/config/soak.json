@@ -1,0 +1,32 @@
+{
+  "scenarios": {
+    "soak_test": {
+      "executor": "constant-vus",
+      "vus": 20,
+      "duration": "1h",
+      "gracefulStop": "2m"
+    }
+  },
+  "thresholds": {
+    "http_req_duration": [
+      "p(95)<3000",
+      "p(99)<5000"
+    ],
+    "http_req_failed": ["rate<0.02"],
+    "http_reqs": ["rate>15"],
+    "checks": ["rate>0.98"],
+    "iteration_duration": ["p(95)<15000"]
+  },
+  "options": {
+    "noConnectionReuse": false,
+    "userAgent": "K6-LoadTest-Soak/1.0",
+    "batch": 10,
+    "batchPerHost": 5
+  },
+  "ext": {
+    "loadimpact": {
+      "name": "Project-H Soak Test",
+      "note": "Extended stability testing"
+    }
+  }
+}

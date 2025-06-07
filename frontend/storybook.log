@@ -1,0 +1,21 @@
+npm error code ERESOLVE
+npm error ERESOLVE unable to resolve dependency tree
+npm error
+npm error While resolving: mental-health-system-frontend@1.0.0
+npm error Found: vite@4.5.14
+npm error node_modules/vite
+npm error   dev vite@"^4.3.9" from the root project
+npm error
+npm error Could not resolve dependency:
+npm error peer vite@"^5.0.0 || ^6.0.0" from @storybook/react-vite@9.0.5
+npm error node_modules/@storybook/react-vite
+npm error   dev @storybook/react-vite@"^9.0.5" from the root project
+npm error
+npm error Fix the upstream dependency conflict, or retry
+npm error this command with --force or --legacy-peer-deps
+npm error to accept an incorrect (and potentially broken) dependency resolution.
+npm error
+npm error
+npm error For a full report see:
+npm error /Users/andeslee/.npm/_logs/2025-06-06T23_36_24_218Z-eresolve-report.txt
+npm error A complete log of this run can be found in: /Users/andeslee/.npm/_logs/2025-06-06T23_36_24_218Z-debug-0.log

@@ -1,0 +1,38 @@
+{
+  "scenarios": {
+    "stress_test": {
+      "executor": "ramping-vus",
+      "startVUs": 0,
+      "stages": [
+        { "duration": "2m", "target": 50 },
+        { "duration": "5m", "target": 100 },
+        { "duration": "2m", "target": 150 },
+        { "duration": "1m", "target": 200 },
+        { "duration": "2m", "target": 0 }
+      ],
+      "gracefulRampDown": "1m"
+    }
+  },
+  "thresholds": {
+    "http_req_duration": [
+      "p(95)<5000",
+      "p(99)<10000"
+    ],
+    "http_req_failed": ["rate<0.10"],
+    "http_reqs": ["rate>50"],
+    "checks": ["rate>0.90"],
+    "iteration_duration": ["p(95)<30000"]
+  },
+  "options": {
+    "noConnectionReuse": false,
+    "userAgent": "K6-LoadTest-Stress/1.0",
+    "batch": 20,
+    "batchPerHost": 10
+  },
+  "ext": {
+    "loadimpact": {
+      "name": "Project-H Stress Test",
+      "note": "Beyond normal capacity testing"
+    }
+  }
+}

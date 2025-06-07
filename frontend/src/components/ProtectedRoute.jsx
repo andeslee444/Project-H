@@ -1,34 +1,33 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../hooks/useAuthFixed';
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { isAuthenticated, user, loading } = useAuth();
 
-  // Demo mode: allow access if URL contains demo params or if we're in development/GitHub Pages
-  const isDemoMode = window.location.search.includes('demo=true') || 
-                     window.location.hostname === 'localhost' ||
-                     window.location.hostname === '127.0.0.1' ||
-                     window.location.hostname.includes('github.io');
+  // Demo mode: check if we have a demo user
+  const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
+  const demoUser = isDemoMode ? JSON.parse(localStorage.getItem('demoUser') || '{}') : null;
 
-  if (loading && !isDemoMode) {
+  if (loading) {
     return <div>Loading...</div>;
   }
 
-  // In demo mode, allow access to dashboards
-  if (isDemoMode) {
-    console.log('Demo mode active, allowing access to:', allowedRoles);
-    return children;
-  }
+  // Check authentication (real or demo)
+  const currentUser = isDemoMode ? demoUser : user;
+  const isAuthed = isDemoMode ? !!demoUser : isAuthenticated;
 
-  if (!isAuthenticated) {
+  if (!isAuthed) {
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles.length > 0 && (!user?.role || !allowedRoles.includes(user.role))) {
+  // Check role-based access
+  if (allowedRoles.length > 0 && (!currentUser?.role || !allowedRoles.includes(currentUser.role))) {
+    console.log('Access denied. User role:', currentUser?.role, 'Allowed roles:', allowedRoles);
     return <Navigate to="/unauthorized" replace />;
   }
 
+  console.log('Access granted. User role:', currentUser?.role, 'Allowed roles:', allowedRoles);
   return children;
 };
 

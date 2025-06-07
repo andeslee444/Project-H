@@ -1,0 +1,15 @@
+# Playwright test results
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Test videos and traces
+*.webm
+*.zip
+
+# Coverage reports
+coverage/
+
+# Environment files
+.env.local
+.env.test

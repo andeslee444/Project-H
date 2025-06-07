@@ -12,6 +12,7 @@ import Analytics from './pages/Analytics/Analytics';
 import Settings from './pages/Settings/Settings';
 import Layout from './components/layouts/Layout/Layout';
 import PatientLayout from './components/layouts/PatientLayout/PatientLayout';
+import AuthTest from './pages/AuthTest';
 
 // Enhanced UI Components  
 // import ProviderDashboard from './components/provider/EnhancedDashboard';
@@ -26,8 +27,8 @@ import PatientProfile from './components/patient/PatientProfile';
 
 import './App.css';
 
-// Import the mock authentication system (no backend required)
-import { AuthProvider, useAuth } from './hooks/useAuth';
+// Import the authentication system with fixed timeout handling
+import { AuthProvider, useAuth } from './hooks/useAuthFixed';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Debug component
@@ -65,6 +66,9 @@ function App() {
               <a href="/login">Go to Login</a>
             </div>
           } />
+          
+          {/* Test page */}
+          <Route path="/auth-test" element={<AuthTest />} />
           
           {/* Root redirect - for GitHub Pages, go to login first */}
           <Route path="/" element={<Navigate to="/login" replace />} />

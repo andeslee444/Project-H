@@ -1,0 +1,191 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Component Catalog" />
+
+# Component Catalog
+
+A comprehensive list of all components in the Mental Health Practice Management System, organized by category.
+
+## 🎨 Design System Components
+
+### Core UI Components
+
+| Component | Status | Description | Stories |
+|-----------|--------|-------------|---------|
+| **Button** | ✅ Complete | Versatile button with variants, sizes, and states | [View Stories](?path=/story/design-system-button--default) |
+| **Input** | ✅ Complete | Text input with validation and icons | [View Stories](?path=/story/design-system-input--default) |
+| **Select** | ✅ Complete | Dropdown select with grouped options | [View Stories](?path=/story/design-system-select--default) |
+| **Card** | ✅ Complete | Container component with header/footer | [View Stories](?path=/story/design-system-card--default) |
+| **StatusIndicator** | ✅ Complete | Status dots with labels and animations | [View Stories](?path=/story/design-system-statusindicator--default) |
+| **Checkbox** | 🚧 In Progress | Checkbox with label and validation | - |
+| **Radio** | 🚧 In Progress | Radio button groups | - |
+| **Textarea** | 🚧 In Progress | Multi-line text input | - |
+| **Form** | 🚧 In Progress | Form wrapper with validation | - |
+| **Label** | 🚧 In Progress | Form field labels | - |
+
+### Feedback Components
+
+| Component | Status | Description | Stories |
+|-----------|--------|-------------|---------|
+| **Toast** | 📋 Planned | Toast notifications | - |
+| **Alert** | 📋 Planned | Alert messages | - |
+| **Modal** | 📋 Planned | Modal dialogs | - |
+| **Tooltip** | 📋 Planned | Hover tooltips | - |
+| **Progress** | 📋 Planned | Progress bars and spinners | - |
+
+### Layout Components
+
+| Component | Status | Description | Stories |
+|-----------|--------|-------------|---------|
+| **Layout** | 🚧 In Progress | Main app layout wrapper | - |
+| **Sidebar** | 📋 Planned | Navigation sidebar | - |
+| **Header** | 📋 Planned | App header with navigation | - |
+| **Footer** | 📋 Planned | App footer | - |
+
+## 🏥 Healthcare Components
+
+### Patient Components
+
+| Component | Status | Description | Stories |
+|-----------|--------|-------------|---------|
+| **MoodTracker** | ✅ Complete | GitHub-style mood tracking visualization | [View Stories](?path=/story/healthcare-moodtracker--default) |
+| **PatientDashboard** | 🚧 In Progress | Patient portal main view | - |
+| **PatientProfile** | 🚧 In Progress | Patient information display | - |
+| **BookingFlow** | 🚧 In Progress | Multi-step appointment booking | - |
+| **AppointmentList** | 📋 Planned | List of patient appointments | - |
+
+### Provider Components
+
+| Component | Status | Description | Stories |
+|-----------|--------|-------------|---------|
+| **ProviderDashboard** | 🚧 In Progress | Provider daily schedule view | - |
+| **AdvancedScheduler** | 🚧 In Progress | Complex scheduling interface | - |
+| **PatientQueue** | 📋 Planned | Today's patient queue | - |
+| **ProviderProfile** | 📋 Planned | Provider information and availability | - |
+
+### Clinical Components
+
+| Component | Status | Description | Stories |
+|-----------|--------|-------------|---------|
+| **AppointmentCard** | 📋 Planned | Individual appointment display | - |
+| **WaitlistEntry** | 📋 Planned | Waitlist item component | - |
+| **TreatmentNote** | 📋 Planned | Clinical note interface | - |
+| **PrescriptionForm** | 📋 Planned | Medication prescription form | - |
+
+## 📊 Data Display Components
+
+| Component | Status | Description | Stories |
+|-----------|--------|-------------|---------|
+| **DataTable** | 📋 Planned | Sortable, filterable data tables | - |
+| **Chart** | 📋 Planned | Data visualization charts | - |
+| **StatCard** | 📋 Planned | Statistics display cards | - |
+| **Timeline** | 📋 Planned | Treatment timeline view | - |
+
+## 🔐 Security Components
+
+| Component | Status | Description | Stories |
+|-----------|--------|-------------|---------|
+| **ProtectedRoute** | ✅ Complete | Route protection wrapper | - |
+| **SessionTimeout** | 🚧 In Progress | Session timeout warning | - |
+| **AuditLog** | 📋 Planned | Audit trail display | - |
+| **ConsentForm** | 📋 Planned | HIPAA consent forms | - |
+
+## 📱 Mobile Components
+
+| Component | Status | Description | Stories |
+|-----------|--------|-------------|---------|
+| **MobileNav** | 📋 Planned | Mobile navigation menu | - |
+| **SwipeableCard** | 📋 Planned | Swipeable appointment cards | - |
+| **TouchCalendar** | 📋 Planned | Touch-optimized calendar | - |
+
+## Component Status Legend
+
+- ✅ **Complete**: Fully implemented with stories and tests
+- 🚧 **In Progress**: Currently being developed
+- 📋 **Planned**: On the roadmap for implementation
+- ⚠️ **Needs Update**: Requires refactoring or updates
+
+## Development Guidelines
+
+### Creating New Components
+
+1. **Plan the Component**
+   - Define props interface
+   - Consider accessibility requirements
+   - Plan for responsive design
+   - Consider HIPAA compliance if handling PHI
+
+2. **Implement the Component**
+   ```tsx
+   // components/ui/MyComponent/MyComponent.tsx
+   export const MyComponent: React.FC<MyComponentProps> = () => {
+     // Implementation
+   };
+   ```
+
+3. **Add TypeScript Types**
+   ```tsx
+   // components/ui/MyComponent/types.ts
+   export interface MyComponentProps {
+     // Props definition
+   }
+   ```
+
+4. **Create Stories**
+   ```tsx
+   // components/ui/MyComponent/MyComponent.stories.tsx
+   export default {
+     title: 'Category/MyComponent',
+     component: MyComponent,
+   };
+   ```
+
+5. **Write Tests**
+   ```tsx
+   // components/ui/MyComponent/MyComponent.test.tsx
+   describe('MyComponent', () => {
+     // Tests
+   });
+   ```
+
+### Component Checklist
+
+Before marking a component as complete:
+
+- [ ] TypeScript types defined
+- [ ] Props documented with JSDoc
+- [ ] Stories cover all variants
+- [ ] Responsive design implemented
+- [ ] Accessibility tested (keyboard, screen reader)
+- [ ] Dark mode supported
+- [ ] Unit tests written (>80% coverage)
+- [ ] Error states handled
+- [ ] Loading states implemented
+- [ ] HIPAA compliance verified (if applicable)
+
+## Contributing
+
+To contribute a new component:
+
+1. Check this catalog to avoid duplicates
+2. Follow the component structure guidelines
+3. Ensure all checklist items are complete
+4. Submit PR with component, stories, and tests
+5. Update this catalog with your component
+
+## Priority Components
+
+Based on current needs, these components should be prioritized:
+
+1. **Toast** - User feedback for actions
+2. **Modal** - Dialogs and confirmations
+3. **DataTable** - Patient and appointment lists
+4. **PatientDashboard** - Main patient interface
+5. **ProviderDashboard** - Main provider interface
+
+## Resources
+
+- [Component Development Guide](?path=/docs/guides-component-development--docs)
+- [Design System Principles](?path=/docs/design-system-principles--docs)
+- [Accessibility Guidelines](?path=/docs/guides-accessibility--docs)
+- [HIPAA Compliance Checklist](?path=/docs/guides-hipaa-compliance--docs)

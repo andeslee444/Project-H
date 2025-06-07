@@ -1,0 +1,44 @@
+apiVersion: 1
+
+datasources:
+  # InfluxDB datasource for K6 metrics
+  - name: InfluxDB-K6
+    type: influxdb
+    access: proxy
+    url: http://influxdb:8086
+    database: k6db
+    user: k6
+    secureJsonData:
+      password: k6password
+    jsonData:
+      httpMode: GET
+      timeInterval: "10s"
+    isDefault: true
+
+  # Prometheus datasource for system metrics
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    jsonData:
+      timeInterval: "15s"
+      queryTimeout: "60s"
+      httpMethod: "GET"
+
+  # ElasticSearch datasource for logs
+  - name: ElasticSearch-Logs
+    type: elasticsearch
+    access: proxy
+    url: http://elasticsearch:9200
+    database: "load-test-logs-*"
+    jsonData:
+      interval: "Daily"
+      timeField: "@timestamp"
+      esVersion: 70
+      maxConcurrentShardRequests: 256
+
+  # TestData datasource for testing dashboards
+  - name: TestData
+    type: testdata
+    access: proxy
+    uid: testdata

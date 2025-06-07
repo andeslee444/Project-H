@@ -1,0 +1,136 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Introduction" />
+
+# Mental Health Practice Management System
+
+Welcome to the component library for the Mental Health Practice Management System. This Storybook showcases all the UI components and patterns used throughout the application.
+
+## 🏥 About the System
+
+This is a comprehensive scheduling and waitlist management system designed specifically for mental health practices. The system features:
+
+- **Patient Management**: Track patient information, appointments, and treatment history
+- **Provider Scheduling**: Advanced scheduling with availability management
+- **Intelligent Matching**: AI-powered patient-provider matching based on specialties and needs
+- **Waitlist Management**: Automated waitlist with smart notifications
+- **HIPAA Compliance**: Built with security and privacy at its core
+- **Performance Optimized**: Fast, responsive interfaces for all users
+
+## 🎨 Design System
+
+Our design system is built on these core principles:
+
+### Colors
+- **Primary**: Blue shades for primary actions and navigation
+- **Success**: Green for positive actions and confirmations
+- **Warning**: Amber for cautions and alerts
+- **Danger**: Red for destructive actions and errors
+- **Neutral**: Gray scale for text and backgrounds
+
+### Typography
+- **Font**: System font stack for optimal performance
+- **Sizes**: Consistent scale from xs to xl
+- **Weights**: Regular (400), Medium (500), Semibold (600), Bold (700)
+
+### Spacing
+- Based on a 4px grid system
+- Common values: 4, 8, 12, 16, 20, 24, 32, 48, 64px
+
+### Components
+All components are:
+- ✅ Fully accessible (WCAG 2.1 AA compliant)
+- ✅ TypeScript typed
+- ✅ Tested with >80% coverage
+- ✅ Responsive and mobile-friendly
+- ✅ Dark mode compatible
+
+## 📚 How to Use This Storybook
+
+### Component Organization
+
+Components are organized into categories:
+
+- **Design System**: Core UI components (Button, Input, Card, etc.)
+- **Healthcare**: Domain-specific components (MoodTracker, AppointmentCard, etc.)
+- **Layouts**: Page layouts and navigation components
+- **Features**: Complex feature components
+
+### Component Documentation
+
+Each component story includes:
+
+1. **Default**: The basic component usage
+2. **Variants**: Different visual styles
+3. **States**: Loading, error, disabled states
+4. **Sizes**: Size variations
+5. **Playground**: Interactive controls to experiment
+
+### Code Examples
+
+Every story includes the source code. Click the "Show code" button below any story to see the implementation.
+
+## 🚀 Getting Started
+
+To use these components in your application:
+
+```tsx
+import { Button } from '@/components/ui/button/Button';
+import { Card } from '@/components/ui/card/Card';
+
+function MyComponent() {
+  return (
+    <Card>
+      <h2>Welcome</h2>
+      <Button variant="primary">Get Started</Button>
+    </Card>
+  );
+}
+```
+
+## 🛡️ Security & Compliance
+
+All components follow strict security guidelines:
+
+- Input sanitization for all user inputs
+- XSS protection built-in
+- CSRF protection on forms
+- Secure session management
+- Audit logging for sensitive actions
+
+## 📱 Responsive Design
+
+Components are responsive by default:
+
+- **Mobile**: 320px - 768px
+- **Tablet**: 768px - 1024px
+- **Desktop**: 1024px+
+
+## 🌙 Dark Mode
+
+All components support dark mode through Tailwind CSS classes. Toggle the theme in the toolbar above.
+
+## 🧪 Testing
+
+Components can be tested using:
+
+```tsx
+import { render, screen } from '@testing-library/react';
+import { Button } from '@/components/ui/button/Button';
+
+test('renders button with text', () => {
+  render(<Button>Click me</Button>);
+  expect(screen.getByText('Click me')).toBeInTheDocument();
+});
+```
+
+## 📖 Additional Resources
+
+- [System Architecture](/?path=/docs/documentation-architecture--docs)
+- [API Documentation](/?path=/docs/documentation-api--docs)
+- [Deployment Guide](/?path=/docs/documentation-deployment--docs)
+- [Contributing Guidelines](/?path=/docs/documentation-contributing--docs)
+
+---
+
+Happy building! 🎉

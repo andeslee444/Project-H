@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../../../hooks/useAuth';
+import { useAuth } from '../../../hooks/useAuthFixed';
 import './Layout.css';
 
 const Layout = () => {
@@ -10,6 +10,98 @@ const Layout = () => {
   const handleLogout = () => {
     auth.logout();
     navigate('/login');
+  };
+  
+  // Get display name based on user role
+  const getDisplayName = () => {
+    // Check for demo mode first
+    const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
+    const storedDemoUser = localStorage.getItem('demoUser');
+    
+    if (isDemoMode && storedDemoUser) {
+      try {
+        const demoUser = JSON.parse(storedDemoUser);
+        if (demoUser.role === 'admin') {
+          return 'Admin';
+        } else if (demoUser.role === 'provider') {
+          const title = demoUser.title || 'Dr.';
+          const lastName = demoUser.last_name || demoUser.lastName || 'Provider';
+          return `${title} ${lastName}`;
+        } else if (demoUser.role === 'patient') {
+          const firstName = demoUser.first_name || demoUser.firstName || '';
+          const lastName = demoUser.last_name || demoUser.lastName || '';
+          return `${firstName} ${lastName}`.trim() || 'Patient';
+        }
+      } catch (e) {
+        console.error('Error parsing demo user:', e);
+      }
+    }
+    
+    if (!auth.user) return 'User';
+    
+    if (auth.user.role === 'admin' || auth.user.role === 'super_admin') {
+      return 'Admin';
+    } else if (auth.user.role === 'provider') {
+      // For providers, show their name with title
+      const firstName = auth.user.first_name || auth.user.firstName || '';
+      const lastName = auth.user.last_name || auth.user.lastName || '';
+      const title = auth.user.title || 'Dr.';
+      
+      if (firstName || lastName) {
+        return `${title} ${lastName || firstName}`;
+      }
+      return 'Provider';
+    } else if (auth.user.role === 'patient') {
+      const firstName = auth.user.first_name || auth.user.firstName || '';
+      const lastName = auth.user.last_name || auth.user.lastName || '';
+      
+      if (firstName || lastName) {
+        return `${firstName} ${lastName}`.trim();
+      }
+      return 'Patient';
+    }
+    
+    return 'User';
+  };
+  
+  // Get avatar emoji based on role
+  const getAvatarEmoji = () => {
+    // Check for demo mode first
+    const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
+    const storedDemoUser = localStorage.getItem('demoUser');
+    
+    if (isDemoMode && storedDemoUser) {
+      try {
+        const demoUser = JSON.parse(storedDemoUser);
+        switch (demoUser.role) {
+          case 'admin':
+          case 'super_admin':
+            return '👨‍💼';
+          case 'provider':
+            return '👨‍⚕️';
+          case 'patient':
+            return '🧑';
+          default:
+            return '👤';
+        }
+      } catch (e) {
+        console.error('Error parsing demo user:', e);
+      }
+    }
+    
+    if (!auth.user) return '👤';
+    
+    switch (auth.user.role) {
+      case 'admin':
+      case 'super_admin':
+        return '👨‍💼';
+      case 'provider':
+        return '👨‍⚕️';
+      case 'patient':
+        return '🧑';
+      default:
+        return '👤';
+    }
   };
   return (
     <div className="layout">
@@ -26,9 +118,9 @@ const Layout = () => {
             <span className="notification-badge">3</span>
           </div>
           <div className="user-profile">
-            <span className="user-avatar">👤</span>
+            <span className="user-avatar">{getAvatarEmoji()}</span>
             <div className="user-dropdown">
-              <span className="user-name">Dr. Johnson</span>
+              <span className="user-name">{getDisplayName()}</span>
               <button onClick={handleLogout} className="logout-button">Logout</button>
             </div>
           </div>

@@ -1,0 +1,51 @@
+/* Button ripple effect */
+@keyframes button-ripple {
+  0% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.button-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.5);
+  transform: scale(0);
+  animation: button-ripple 0.6s ease-out;
+  pointer-events: none;
+}
+
+/* Focus visible enhancement */
+button:focus-visible {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+/* Loading state cursor */
+button[aria-busy="true"] {
+  cursor: wait;
+}
+
+/* Disabled state enhancement */
+button:disabled {
+  cursor: not-allowed;
+  filter: saturate(0.6);
+}
+
+/* Icon-only button enhancement */
+button[aria-label] {
+  position: relative;
+}
+
+/* Smooth color transitions */
+button {
+  transition: background-color 0.2s ease,
+              border-color 0.2s ease,
+              color 0.2s ease,
+              transform 0.15s ease,
+              box-shadow 0.2s ease;
+}

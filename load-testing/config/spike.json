@@ -1,0 +1,38 @@
+{
+  "scenarios": {
+    "spike_test": {
+      "executor": "ramping-vus",
+      "startVUs": 0,
+      "stages": [
+        { "duration": "10s", "target": 10 },
+        { "duration": "10s", "target": 500 },
+        { "duration": "30s", "target": 500 },
+        { "duration": "10s", "target": 10 },
+        { "duration": "3m", "target": 10 },
+        { "duration": "10s", "target": 0 }
+      ],
+      "gracefulRampDown": "30s"
+    }
+  },
+  "thresholds": {
+    "http_req_duration": [
+      "p(95)<10000",
+      "p(99)<15000"
+    ],
+    "http_req_failed": ["rate<0.15"],
+    "checks": ["rate>0.85"],
+    "iteration_duration": ["p(95)<60000"]
+  },
+  "options": {
+    "noConnectionReuse": false,
+    "userAgent": "K6-LoadTest-Spike/1.0",
+    "batch": 25,
+    "batchPerHost": 15
+  },
+  "ext": {
+    "loadimpact": {
+      "name": "Project-H Spike Test",
+      "note": "Sudden traffic spike simulation"
+    }
+  }
+}

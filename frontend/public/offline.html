@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - Mental Health Practice Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f9fafb;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        
+        .offline-container {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            padding: 3rem;
+            max-width: 28rem;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .offline-icon {
+            width: 4rem;
+            height: 4rem;
+            margin: 0 auto 1.5rem;
+            color: #6b7280;
+        }
+        
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #111827;
+        }
+        
+        p {
+            color: #6b7280;
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+        
+        .retry-button {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .retry-button:hover {
+            background-color: #2563eb;
+        }
+        
+        .retry-button:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+        }
+        
+        .status-message {
+            margin-top: 2rem;
+            padding: 1rem;
+            background-color: #fef3c7;
+            border-radius: 0.5rem;
+            color: #92400e;
+            font-size: 0.875rem;
+            display: none;
+        }
+        
+        .status-message.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <svg class="offline-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3m8.293 8.293l1.414 1.414" />
+        </svg>
+        
+        <h1>You're Offline</h1>
+        <p>It looks like you've lost your internet connection. Some features may be unavailable until you're back online.</p>
+        
+        <button class="retry-button" onclick="checkConnection()">
+            Try Again
+        </button>
+        
+        <div id="status-message" class="status-message">
+            Checking connection...
+        </div>
+    </div>
+    
+    <script>
+        // Check if we're back online
+        window.addEventListener('online', () => {
+            location.reload();
+        });
+        
+        // Retry connection
+        function checkConnection() {
+            const statusMessage = document.getElementById('status-message');
+            statusMessage.textContent = 'Checking connection...';
+            statusMessage.classList.add('show');
+            
+            // Try to fetch a small resource
+            fetch('/api/health', { method: 'HEAD' })
+                .then(() => {
+                    statusMessage.textContent = 'Connection restored! Reloading...';
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                })
+                .catch(() => {
+                    statusMessage.textContent = 'Still offline. Please check your internet connection.';
+                    setTimeout(() => {
+                        statusMessage.classList.remove('show');
+                    }, 3000);
+                });
+        }
+        
+        // Auto-retry every 30 seconds
+        setInterval(() => {
+            if (!navigator.onLine) return;
+            
+            fetch('/api/health', { method: 'HEAD' })
+                .then(() => location.reload())
+                .catch(() => {});
+        }, 30000);
+    </script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../hooks/useAuthFixed';
 import './Login.css';
 
 const Login = () => {
@@ -26,20 +26,78 @@ const Login = () => {
     }
     
     // Check if this is a demo account
-    const isDemoAccount = ['patient@example.com', 'provider@example.com', 'admin@example.com'].includes(email) 
-                         && password === 'demopassword123';
+    const demoEmails = [
+      'patient@example.com', 'provider@example.com', 'admin@example.com',
+      'sjohnson@example.com', 'mchen@example.com', 'erodriguez@example.com',
+      'dthompson@example.com', 'lmartinez@example.com', 'jwilson@example.com'
+    ];
+    const isDemoAccount = demoEmails.includes(email) && 
+                         (password === 'demopassword123' || password === 'provider123');
     
     if (isDemoAccount) {
       // For demo accounts, navigate directly with demo mode
       console.log('Demo account detected, using demo mode navigation');
+      
+      // Determine role and user data from email
+      let demoRole = 'user';
+      let firstName = 'Demo';
+      let lastName = 'User';
+      let title = undefined;
+      let providerId = undefined;
+      
+      // Provider email mapping
+      const providerData = {
+        'sjohnson@example.com': { firstName: 'Sarah', lastName: 'Johnson', title: 'Dr.', id: '1' },
+        'provider@example.com': { firstName: 'Sarah', lastName: 'Johnson', title: 'Dr.', id: '1' },
+        'mchen@example.com': { firstName: 'Michael', lastName: 'Chen', title: 'Dr.', id: '2' },
+        'erodriguez@example.com': { firstName: 'Emily', lastName: 'Rodriguez', title: 'LCSW', id: '3' },
+        'dthompson@example.com': { firstName: 'David', lastName: 'Thompson', title: 'PhD', id: '4' },
+        'lmartinez@example.com': { firstName: 'Lisa', lastName: 'Martinez', title: 'LMFT', id: '5' },
+        'jwilson@example.com': { firstName: 'James', lastName: 'Wilson', title: 'PsyD', id: '6' }
+      };
+      
+      if (email === 'admin@example.com') {
+        demoRole = 'admin';
+        firstName = 'Admin';
+        lastName = '';
+      } else if (providerData[email]) {
+        demoRole = 'provider';
+        firstName = providerData[email].firstName;
+        lastName = providerData[email].lastName;
+        title = providerData[email].title;
+        providerId = providerData[email].id;
+      } else if (email === 'patient@example.com') {
+        demoRole = 'patient';
+        firstName = 'Demo';
+        lastName = 'Patient';
+      }
+      
+      // Store demo user data
+      const demoUserData = {
+        id: `demo-${demoRole}-${providerId || '001'}`,
+        email: email,
+        role: demoRole,
+        first_name: firstName,
+        last_name: lastName,
+        title: title,
+        provider_id: providerId,
+        user_metadata: { 
+          role: demoRole,
+          provider_id: providerId
+        }
+      };
+      
+      localStorage.setItem('isDemoMode', 'true');
+      localStorage.setItem('demoUser', JSON.stringify(demoUserData));
+      
       setTimeout(() => {
         if (role === 'Patient') {
-          navigate('/patient/dashboard?demo=true');
+          navigate(`/patient/dashboard?demo=true&demoUser=${encodeURIComponent(email)}`);
         } else {
-          navigate('/dashboard?demo=true');
+          navigate(`/dashboard?demo=true&demoUser=${encodeURIComponent(email)}`);
         }
         setIsLoading(false);
-      }, 1000);
+      }, 500);
       return;
     }
     
@@ -77,21 +135,37 @@ const Login = () => {
     
     console.log('Demo login for:', demoRole, demoEmail);
     
-    // Direct navigation for demo mode
+    // Store demo user info in localStorage for persistence
+    const demoUserData = {
+      id: `demo-${demoRole.toLowerCase()}-001`,
+      email: demoEmail,
+      role: demoRole === 'Practice Administrator' ? 'admin' : demoRole.toLowerCase(),
+      first_name: demoRole === 'Provider' ? 'Sarah' : (demoRole === 'Practice Administrator' ? 'Admin' : 'Demo'),
+      last_name: demoRole === 'Provider' ? 'Johnson' : (demoRole === 'Patient' ? 'Patient' : ''),
+      title: demoRole === 'Provider' ? 'Dr.' : undefined,
+      user_metadata: { 
+        role: demoRole === 'Practice Administrator' ? 'admin' : demoRole.toLowerCase() 
+      }
+    };
+    
+    localStorage.setItem('isDemoMode', 'true');
+    localStorage.setItem('demoUser', JSON.stringify(demoUserData));
+    
+    // Direct navigation for demo mode with demo user email
     setTimeout(() => {
       console.log('Demo login navigating...');
       if (demoRole === 'Patient') {
         console.log('Navigating to patient dashboard');
-        navigate('/patient/dashboard?demo=true');
+        navigate(`/patient/dashboard?demo=true&demoUser=${encodeURIComponent(demoEmail)}`);
       } else if (demoRole === 'Provider') {
         console.log('Navigating to provider dashboard');
-        navigate('/dashboard?demo=true');
+        navigate(`/dashboard?demo=true&demoUser=${encodeURIComponent(demoEmail)}`);
       } else {
         console.log('Navigating to admin dashboard');
-        navigate('/dashboard?demo=true');
+        navigate(`/dashboard?demo=true&demoUser=${encodeURIComponent(demoEmail)}`);
       }
       setIsLoading(false);
-    }, 1000);
+    }, 500);
   };
 
   return (
