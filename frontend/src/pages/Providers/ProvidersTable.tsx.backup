@@ -265,6 +265,13 @@ const ProvidersTable: React.FC = () => {
   const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin'
   const isProvider = currentUser?.role === 'provider'
 
+  // Helper function for utilization color
+  const getUtilizationColor = (rate: number) => {
+    if (rate >= 90) return 'bg-green-500'
+    if (rate >= 70) return 'bg-yellow-500'
+    return 'bg-blue-500'
+  }
+
   // Mock patient counts and utilization rates
   const providerMetrics = useMemo(() => ({
     '1': { patientCount: 45, utilizationRate: 92 },
@@ -502,9 +509,9 @@ const ProvidersTable: React.FC = () => {
                         <div className="ml-2 w-16">
                           <div className="bg-gray-200 rounded-full h-2">
                             <div 
-                              className={`h-2 rounded-full ${metrics.utilizationRate >= 90 ? 'bg-green-500' : metrics.utilizationRate >= 70 ? 'bg-yellow-500' : 'bg-blue-500'}`}
+                              className={getUtilizationColor(metrics.utilizationRate) + ' h-2 rounded-full'}
                               style={{ width: `${metrics.utilizationRate}%` }}
-                            ></div>
+                            />
                           </div>
                         </div>
                       </div>

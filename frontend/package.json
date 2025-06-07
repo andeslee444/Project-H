@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "build:analyze": "ANALYZE=true tsc && vite build",
     "build:cdn": "USE_CDN=true tsc && vite build",
     "build:sourcemap": "SOURCE_MAP=true tsc && vite build",

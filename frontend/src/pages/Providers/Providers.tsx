@@ -1,9 +1,8 @@
 import React from 'react'
-import ProvidersDebug from './ProvidersDebug'
+import ProvidersSimpleTable from './ProvidersSimpleTable'
 
-// Temporarily using debug version to troubleshoot
 const Providers: React.FC = () => {
-  return <ProvidersDebug />
+  return <ProvidersSimpleTable />
 }
 
 export default Providers
