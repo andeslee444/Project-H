@@ -12,6 +12,7 @@ import Analytics from './pages/Analytics/Analytics';
 import Settings from './pages/Settings/Settings';
 import Layout from './components/layouts/Layout/Layout';
 import PatientLayout from './components/layouts/PatientLayout/PatientLayout';
+import ResyLayout from './components/layouts/ResyLayout/ResyLayout';
 import AuthTest from './pages/AuthTest';
 
 // Enhanced UI Components  
@@ -24,6 +25,20 @@ import PatientMessages from './components/patient/PatientMessages';
 import PatientProfile from './components/patient/PatientProfile';
 // import ComponentShowcase from './components/showcase/ComponentShowcase';
 // import { HealthcareToastContainer } from './components/ui/Toast';
+
+// Resy-inspired components
+import ResyHomePage from './components/resy/HomePage';
+import ResyProviderDashboard from './components/resy/ResyProviderDashboard'; // Updated to use the new comprehensive dashboard
+import OldProviderDashboard from './components/resy/ProviderDashboard'; // Keep old one for reference
+import ResyPatientBooking from './components/resy/PatientBooking';
+import ResyProviderProfile from './components/resy/ProviderProfile';
+import ResyWaitlist from './components/resy/ResyWaitlist';
+import ResyAvailabilityGrid from './components/resy/ResyAvailabilityGrid';
+import ResyPatientManagement from './components/resy/ResyGuestManagement'; // Will show "Patient Management" header
+import ResyTeamDashboard from './components/resy/ResyTeamDashboard';
+import ResyInsightsDashboard from './components/resy/ResyInsightsDashboard';
+import ResyQuickControls from './components/resy/ResyQuickControls';
+import ResyMainDashboard from './pages/ResyDashboard/ResyDashboard';
 
 import './App.css';
 
@@ -70,24 +85,38 @@ function App() {
           {/* Test page */}
           <Route path="/auth-test" element={<AuthTest />} />
           
-          {/* Root redirect - for GitHub Pages, go to login first */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          {/* Resy-inspired public routes */}
+          <Route path="/" element={<ResyHomePage />} />
+          <Route path="/search" element={<ResyPatientBooking />} />
+          <Route path="/provider/:id" element={<ResyProviderProfile />} />
           
-          {/* Protected routes for practice staff */}
+          {/* Demo routes for Resy UI (temporary for showcase) */}
+          <Route path="/demo/provider-dashboard" element={<ResyProviderDashboard />} />
+          <Route path="/demo/patient-booking" element={<ResyPatientBooking />} />
+          
+          {/* Protected routes for practice staff - Resy UI */}
           <Route path="/" element={
             <ProtectedRoute allowedRoles={['provider', 'admin']}>
-              <Layout />
+              <ResyLayout />
             </ProtectedRoute>
           }>
-            <Route path="dashboard" element={<ProviderDashboard />} />
+            <Route path="dashboard" element={<ResyMainDashboard />} />
+            <Route path="dashboard-provider" element={<ResyProviderDashboard />} />
             <Route path="dashboard-old" element={<Dashboard />} />
-            <Route path="waitlist" element={<Waitlist />} />
-            <Route path="schedule" element={<ProviderScheduler />} />
+            <Route path="dashboard-legacy" element={<ProviderDashboard />} />
+            <Route path="waitlist" element={<ResyWaitlist />} />
+            <Route path="waitlist-old" element={<Waitlist />} />
+            <Route path="schedule" element={<ResyAvailabilityGrid />} />
+            <Route path="schedule-advanced" element={<ProviderScheduler />} />
             <Route path="schedule-old" element={<Schedule />} />
-            <Route path="patients" element={<Patients />} />
-            <Route path="providers" element={<Providers />} />
-            <Route path="analytics" element={<Analytics />} />
-            <Route path="settings" element={<Settings />} />
+            <Route path="patients" element={<ResyPatientManagement />} />
+            <Route path="patients-old" element={<Patients />} />
+            <Route path="providers" element={<ResyTeamDashboard />} />
+            <Route path="providers-old" element={<Providers />} />
+            <Route path="analytics" element={<ResyInsightsDashboard />} />
+            <Route path="analytics-old" element={<Analytics />} />
+            <Route path="settings" element={<ResyQuickControls />} />
+            <Route path="settings-old" element={<Settings />} />
           </Route>
           
           {/* Protected routes for patients */}
