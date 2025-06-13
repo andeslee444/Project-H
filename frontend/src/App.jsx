@@ -13,6 +13,7 @@ import Settings from './pages/Settings/Settings';
 import Layout from './components/layouts/Layout/Layout';
 import PatientLayout from './components/layouts/PatientLayout/PatientLayout';
 import ResyLayout from './components/layouts/ResyLayout/ResyLayout';
+import PublicNavWrapper from './components/layouts/PublicNavWrapper';
 import AuthTest from './pages/AuthTest';
 
 // Enhanced UI Components  
@@ -94,6 +95,13 @@ function App() {
           <Route path="/demo/provider-dashboard" element={<ResyProviderDashboard />} />
           <Route path="/demo/patient-booking" element={<ResyPatientBooking />} />
           
+          {/* Public waitlist with layout for testing */}
+          <Route path="/waitlist" element={
+            <PublicNavWrapper>
+              <ResyWaitlist />
+            </PublicNavWrapper>
+          } />
+          
           {/* Protected routes for practice staff - Resy UI */}
           <Route path="/" element={
             <ProtectedRoute allowedRoles={['provider', 'admin']}>
@@ -104,7 +112,7 @@ function App() {
             <Route path="dashboard-provider" element={<ResyProviderDashboard />} />
             <Route path="dashboard-old" element={<Dashboard />} />
             <Route path="dashboard-legacy" element={<ProviderDashboard />} />
-            <Route path="waitlist" element={<ResyWaitlist />} />
+            <Route path="waitlist-protected" element={<ResyWaitlist />} />
             <Route path="waitlist-old" element={<Waitlist />} />
             <Route path="schedule" element={<ResyAvailabilityGrid />} />
             <Route path="schedule-advanced" element={<ProviderScheduler />} />

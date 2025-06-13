@@ -2,8 +2,16 @@ import React, { useEffect, useState } from 'react';
 
 export function DebugFetch() {
   const [debugInfo, setDebugInfo] = useState({});
+  const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.GITHUB_PAGES === 'true';
   
   useEffect(() => {
+    if (isDemoMode) {
+      setDebugInfo({
+        demoMode: true,
+        message: 'Running in demo mode - database connections disabled'
+      });
+      return;
+    }
     // Check if fetch has been modified
     const fetchString = window.fetch.toString();
     const isNativeFetch = fetchString.includes('[native code]');

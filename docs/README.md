@@ -1,5 +1,11 @@
 # Project H - Mental Health Practice Scheduling System
 
+## 📌 Current Status
+**[See PROJECT_STATUS_SUMMARY.md for accurate project status]**
+- 93% Complete (Demo Ready)
+- Requires 15-20 hours of fixes for production
+- Live demo available and functional
+
 ## 🏥 Overview
 
 Project H is a comprehensive HIPAA-compliant mental health practice scheduling and management system designed to streamline operations for mental health practitioners and improve patient experience.

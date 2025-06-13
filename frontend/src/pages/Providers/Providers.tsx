@@ -1,8 +1,8 @@
 import React from 'react'
-import ProvidersSimpleTable from './ProvidersSimpleTable'
+import ProvidersTable from './ProvidersTable'
 
 const Providers: React.FC = () => {
-  return <ProvidersSimpleTable />
+  return <ProvidersTable />
 }
 
 export default Providers

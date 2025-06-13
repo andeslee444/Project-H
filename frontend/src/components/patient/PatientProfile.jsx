@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../hooks/useAuthFixed';
 
 const PatientProfile = () => {
   const { user, logout } = useAuth();

@@ -2,7 +2,11 @@
 
 ## Executive Summary
 
-This document outlines a comprehensive refactoring plan for the MindfulMatch mental health practice scheduling system. The goal is to transform the current codebase into a maintainable, scalable, and well-documented healthcare application that supports future interface and database upgrades.
+**IMPORTANT**: This is a FUTURE ENHANCEMENT plan for POST-DEPLOYMENT improvements. The system is currently functional and demo-ready. This refactoring plan is NOT required for production deployment but will improve long-term maintainability and scalability.
+
+**Current Status**: The system works well and only needs 15-20 hours of technical debt fixes before production deployment (see IMMEDIATE_ACTION_PLAN.md for critical fixes).
+
+This document outlines a comprehensive 8-week refactoring plan to modernize the MindfulMatch architecture after initial deployment, transforming it into an even more maintainable, scalable, and well-documented healthcare application.
 
 ## Current State Analysis
 

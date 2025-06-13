@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Bell, Mail, MessageSquare, Smartphone, Clock } from 'lucide-react';
-import { NotificationService, NotificationPreferences, NotificationType } from '@/lib/notifications/NotificationService';
+import { NotificationService, NotificationType } from '@/lib/notifications/NotificationService';
+import type { NotificationPreferences } from '@/lib/notifications/NotificationService';
 import { useAuth } from '@/hooks/useAuth';
 import { Switch } from '@/components/ui/switch/Switch';
 import { Card, CardHeader, CardContent } from '@/components/ui/card/Card';
@@ -22,7 +23,7 @@ const notificationTypeLabels: Record<NotificationType, string> = {
 };
 
 const channelIcons = {
-  inApp: <Bell className="w-4 h-4" />,
+  in_app: <Bell className="w-4 h-4" />,
   email: <Mail className="w-4 h-4" />,
   sms: <MessageSquare className="w-4 h-4" />,
   push: <Smartphone className="w-4 h-4" />
@@ -141,15 +142,15 @@ export const NotificationPreferences: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-center justify-between p-3 border rounded-lg">
               <div className="flex items-center gap-3">
-                {channelIcons.inApp}
+                {channelIcons.in_app}
                 <div>
                   <p className="font-medium">In-App Notifications</p>
                   <p className="text-sm text-gray-600">Show notifications in the app</p>
                 </div>
               </div>
               <Switch
-                checked={preferences.channels.inApp}
-                onCheckedChange={(checked) => updateChannelPreference('inApp', checked)}
+                checked={preferences.channels.in_app}
+                onCheckedChange={(checked) => updateChannelPreference('in_app', checked)}
               />
             </div>
 
@@ -227,7 +228,7 @@ export const NotificationPreferences: React.FC = () => {
                   {typePrefs?.enabled && (
                     <div className="space-y-3 pl-4">
                       <div className="flex flex-wrap gap-2">
-                        {(['inApp', 'email', 'sms'] as const).map(channel => (
+                        {(['in_app', 'email', 'sms'] as const).map(channel => (
                           <label
                             key={channel}
                             className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm cursor-pointer transition-colors ${

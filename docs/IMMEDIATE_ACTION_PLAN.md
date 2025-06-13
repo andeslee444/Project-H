@@ -1,8 +1,29 @@
-# Immediate Action Plan - Project-H Refactoring
+# Immediate Action Plan - Project-H
 
 ## Overview
 
-This document provides the immediate next steps to begin the comprehensive refactoring of the MindfulMatch system. The plan is designed to be executed in small, manageable chunks while maintaining the current functionality.
+This document outlines two tracks of immediate actions:
+1. **Production Readiness Track** (Priority 1): Fix critical issues blocking production deployment (15-20 hours)
+2. **Future Enhancement Track** (Priority 2): Comprehensive refactoring for long-term maintainability (8 weeks)
+
+## Priority 1: Production Readiness (Must Complete First)
+
+### Critical Issues to Fix (15-20 hours total):
+1. **Fix 62 failing tests** (6 hours)
+2. **Fix TypeScript build configuration** (2 hours)
+3. **Install missing ESLint plugins** (1 hour)
+4. **Update deprecated dependencies** (2 hours)
+5. **Standardize components to .tsx** (4 hours)
+6. **Clean console warnings** (2 hours)
+7. **Run final security audit** (2 hours)
+8. **Update documentation** (1 hour)
+
+### After These Fixes:
+- System will be fully production-ready
+- Can deploy to pilot practices
+- Begin revenue generation
+
+## Priority 2: Future Enhancements (Post-Deployment)
 
 ## Phase 1: Foundation Setup (Next 2 Weeks)
 

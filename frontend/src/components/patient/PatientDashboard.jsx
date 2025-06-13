@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../hooks/useAuthFixed';
 import MoodTracker from './MoodTracker.jsx';
 
 const PatientDashboard = () => {

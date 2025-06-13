@@ -38,8 +38,9 @@ jobs:
       env:
         NODE_ENV: production
         GITHUB_PAGES: true
+        VITE_DEMO_MODE: true
       run: |
-        echo "Building with NODE_ENV=$NODE_ENV and GITHUB_PAGES=$GITHUB_PAGES"
+        echo "Building with NODE_ENV=$NODE_ENV, GITHUB_PAGES=$GITHUB_PAGES, VITE_DEMO_MODE=$VITE_DEMO_MODE"
         npm run build
         echo "Build completed. Contents of dist:"
         ls -la dist/

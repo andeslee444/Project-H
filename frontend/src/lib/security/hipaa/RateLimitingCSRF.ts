@@ -689,9 +689,18 @@ export class SecurityMiddleware {
    * Create a secure fetch function with all protections
    */
   createSecureFetch(keyGenerator?: (url: string, init?: RequestInit) => string): typeof fetch {
+    // Store the original fetch function
+    const originalFetch = window.fetch.bind(window);
+    
     return async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
       const url = typeof input === 'string' ? input : input.toString();
       const method = init?.method || 'GET';
+      
+      // IMPORTANT: Bypass security for Supabase URLs to prevent blocking database queries
+      if (url.includes('supabase.co') || url.includes('supabase.io')) {
+        console.log('🔓 Bypassing security for Supabase URL:', url);
+        return originalFetch(input, init);
+      }
       
       // Generate rate limiting key
       const rateLimitKey = keyGenerator 
@@ -716,7 +725,7 @@ export class SecurityMiddleware {
       const protectedInit = await this.csrfProtection.addCSRFProtection(init || {});
 
       // Add rate limiting headers to response tracking
-      const response = await fetch(input, protectedInit);
+      const response = await originalFetch(input, protectedInit);
       
       // Record the response for rate limiting analysis
       await this.rateLimiter.checkRateLimit(

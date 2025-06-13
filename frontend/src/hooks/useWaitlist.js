@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { supabaseService } from '../services/supabaseService';
 import { supabaseServiceDebug } from '../services/supabaseService-debug';
 
+// Check if we're in demo mode (GitHub Pages)
+const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.GITHUB_PAGES === 'true';
+
 // Define mock data at module level
 const mockEntries = [
   {
@@ -130,6 +133,46 @@ export function useWaitlist() {
       setLoading(true);
       console.log('DEBUG: Starting fetchWaitlistEntries...');
       
+      // In demo mode, use mock data immediately
+      if (isDemoMode) {
+        console.log('Demo mode: Using mock data');
+        const mockResponse = {
+          data: mockEntries,
+          success: true,
+          error: null
+        };
+        const response = mockResponse;
+        const { data: entries, success, error: serviceError } = response;
+        
+        if (entries && entries.length > 0) {
+          const formattedEntries = entries.map((entry, index) => ({
+            id: entry.entry_id,
+            name: entry.patient ? `${entry.patient.first_name} ${entry.patient.last_name}` : 'Unknown Patient',
+            email: entry.patient?.email || 'No email',
+            phone: entry.patient?.phone || 'No phone',
+            photo: `https://i.pravatar.cc/150?u=${entry.patient_id}`,
+            condition: entry.patient?.preferences?.modality || entry.patient?.preferences?.primaryCondition || entry.notes || 'Not specified',
+            insurance: entry.patient?.insurance_info?.provider || 'Not specified',
+            preferredTimes: entry.patient?.preferences?.preferredTimes || ['Any time'],
+            joinedDate: new Date(entry.created_at).toLocaleDateString(),
+            position: index + 1,
+            matchScore: entry.priority_score || 50,
+            handRaised: entry.priority_score > 80,
+            urgency: entry.priority_score > 85 ? 'high' : entry.priority_score > 70 ? 'medium' : 'low',
+            lastContact: entry.updated_at ? new Date(entry.updated_at).toLocaleDateString() : null,
+            responseRate: 75 + Math.random() * 25,
+            provider: entry.provider ? `Dr. ${entry.provider.last_name}` : null,
+            notes: entry.notes || '',
+            status: entry.status,
+            waitlistName: entry.waitlist?.name || 'General Waitlist'
+          }));
+          setWaitlistEntries(formattedEntries);
+        }
+        setLoading(false);
+        return;
+      }
+      
+      // Non-demo mode: fetch from Supabase
       // Add timeout to prevent hanging (increased to 15 seconds to allow for table joins)
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Supabase query timeout after 15 seconds')), 15000)

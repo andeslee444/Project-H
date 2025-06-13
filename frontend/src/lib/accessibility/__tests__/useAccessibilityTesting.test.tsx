@@ -3,7 +3,8 @@
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach, beforeAll, afterAll } from 'vitest';
-import { renderHook, act, waitFor, cleanup } from '../../../test/utils/render';
+import { renderHook, act, waitFor } from '@testing-library/react';
+import { cleanup } from '@testing-library/react';
 import { 
   useAccessibilityTest,
   useAccessibilityMonitoring,

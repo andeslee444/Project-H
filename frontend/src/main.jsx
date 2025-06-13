@@ -3,6 +3,9 @@ import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import './styles/index.css';
 
+// Generate unique session key for rate limiting
+import './lib/security/generate-session-key.js';
+
 console.log('main.jsx loaded - loading main App');
 
 // Add error boundary to catch any rendering errors

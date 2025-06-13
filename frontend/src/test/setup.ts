@@ -3,6 +3,27 @@ import { expect, afterEach, beforeAll, afterAll, vi } from 'vitest'
 import { cleanup } from '@testing-library/react'
 import { setupServer } from 'msw/node'
 import { http, HttpResponse } from 'msw'
+import React from 'react'
+import './react-18-fixes'
+
+// Fix for React 18 concurrent features in tests
+globalThis.IS_REACT_ACT_ENVIRONMENT = true
+
+// Suppress specific React warnings in tests
+const originalError = console.error;
+beforeAll(() => {
+  console.error = (...args: any[]) => {
+    if (
+      typeof args[0] === 'string' &&
+      (args[0].includes('Warning: ReactDOMTestUtils.act') ||
+       args[0].includes('Warning: An update to') ||
+       args[0].includes('was not wrapped in act'))
+    ) {
+      return;
+    }
+    originalError.call(console, ...args);
+  };
+});
 
 // Setup globals before all tests
 beforeAll(() => {
@@ -172,10 +193,30 @@ global.ResizeObserver = class ResizeObserver {
   unobserve() {}
 } as any
 
-// Mock document.createElement for testing
-const originalCreateElement = document.createElement;
+// Mock document.createElement for testing with complete DOM interface
+const originalCreateElement = document.createElement.bind(document);
 document.createElement = function(tagName: string) {
-  const element = originalCreateElement.call(this, tagName);
+  const element = originalCreateElement(tagName);
+  
+  // Ensure all elements have complete DOM methods
+  if (!element.setAttribute) {
+    element.setAttribute = function(name: string, value: string) {
+      this[name] = value;
+    };
+  }
+  
+  if (!element.getAttribute) {
+    element.getAttribute = function(name: string) {
+      return this[name] || null;
+    };
+  }
+  
+  if (!element.removeAttribute) {
+    element.removeAttribute = function(name: string) {
+      delete this[name];
+    };
+  }
+  
   // Ensure all elements have basic properties
   if (!element.style) {
     Object.defineProperty(element, 'style', {
@@ -184,6 +225,7 @@ document.createElement = function(tagName: string) {
       configurable: true
     });
   }
+  
   return element;
 }
 

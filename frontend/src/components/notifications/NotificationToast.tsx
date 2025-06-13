@@ -14,7 +14,7 @@ interface NotificationDetail {
 }
 
 const notificationConfig = {
-  position: toast.POSITION.TOP_RIGHT as const,
+  position: "top-right" as const,
   autoClose: 5000,
   hideProgressBar: false,
   closeOnClick: true,
@@ -53,7 +53,8 @@ const CustomToast: React.FC<NotificationDetail> = ({ type, title, message }) => 
 export const NotificationToastContainer: React.FC = () => {
   useEffect(() => {
     const handleNotificationShow = (event: CustomEvent<NotificationDetail>) => {
-      const { priority, ...notification } = event.detail;
+      const notification = event.detail;
+      const { priority } = notification;
 
       const toastType = priority === 'urgent' || priority === 'high' 
         ? toast.error 

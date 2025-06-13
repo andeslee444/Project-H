@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Supabase Direct Test</title>
+</head>
+<body>
+  <h1>Supabase Direct Test</h1>
+  <div id="log"></div>
+  
+  <script type="module">
+    const log = (msg) => {
+      const div = document.getElementById('log');
+      div.innerHTML += `<p>${new Date().toISOString()}: ${msg}</p>`;
+      console.log(msg);
+    };
+    
+    log('Starting test...');
+    
+    // Test 1: Direct fetch
+    log('Test 1: Direct fetch to Supabase...');
+    fetch('https://qjsktpjgfwtgpnmsonrq.supabase.co/rest/v1/waitlist_entries?limit=1', {
+      headers: {
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqc2t0cGpnZnd0Z3BubXNvbnJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkwNjYyODIsImV4cCI6MjA2NDY0MjI4Mn0.xROzs_OrgHhy97DbND7VcZzGcd9V_QS2G_Cu9DPDf3g',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqc2t0cGpnZnd0Z3BubXNvbnJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkwNjYyODIsImV4cCI6MjA2NDY0MjI4Mn0.xROzs_OrgHhy97DbND7VcZzGcd9V_QS2G_Cu9DPDf3g'
+      }
+    })
+    .then(res => res.json())
+    .then(data => log('Direct fetch success: ' + JSON.stringify(data)))
+    .catch(err => log('Direct fetch error: ' + err.message));
+    
+    // Test 2: Import Supabase client
+    setTimeout(async () => {
+      log('Test 2: Loading Supabase client...');
+      try {
+        const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2');
+        log('Supabase client imported');
+        
+        const supabase = createClient(
+          'https://qjsktpjgfwtgpnmsonrq.supabase.co',
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqc2t0cGpnZnd0Z3BubXNvbnJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkwNjYyODIsImV4cCI6MjA2NDY0MjI4Mn0.xROzs_OrgHhy97DbND7VcZzGcd9V_QS2G_Cu9DPDf3g'
+        );
+        log('Supabase client created');
+        
+        const { data, error } = await supabase
+          .from('waitlist_entries')
+          .select('*')
+          .limit(1);
+          
+        if (error) {
+          log('Supabase query error: ' + error.message);
+        } else {
+          log('Supabase query success: ' + JSON.stringify(data));
+        }
+      } catch (err) {
+        log('Test 2 error: ' + err.message);
+      }
+    }, 1000);
+  </script>
+</body>
+</html>

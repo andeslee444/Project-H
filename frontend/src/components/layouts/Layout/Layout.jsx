@@ -131,10 +131,28 @@ const Layout = () => {
         <aside className="sidebar">
           <nav className="nav-menu">
             <ul>
+              <li className="nav-section-header">
+                <span className="nav-text">New Experience</span>
+              </li>
               <li>
                 <Link to="/dashboard" className="nav-link">
+                  <span className="nav-icon">✨</span>
+                  <span className="nav-text">Dashboard (New)</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/" className="nav-link" target="_blank">
+                  <span className="nav-icon">🏠</span>
+                  <span className="nav-text">Patient Portal</span>
+                </Link>
+              </li>
+              <li className="nav-section-header">
+                <span className="nav-text">Classic Features</span>
+              </li>
+              <li>
+                <Link to="/dashboard-old" className="nav-link">
                   <span className="nav-icon">📊</span>
-                  <span className="nav-text">Dashboard</span>
+                  <span className="nav-text">Dashboard (Classic)</span>
                 </Link>
               </li>
               <li>
