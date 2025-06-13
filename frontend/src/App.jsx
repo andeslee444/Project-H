@@ -32,6 +32,7 @@ import ResyHomePage from './components/resy/HomePage';
 import ResyProviderDashboard from './components/resy/ResyProviderDashboard'; // Updated to use the new comprehensive dashboard
 import OldProviderDashboard from './components/resy/ProviderDashboard'; // Keep old one for reference
 import ResyPatientBooking from './components/resy/PatientBooking';
+import ResyPatientBookingWithMap from './components/resy/PatientBookingWithMap';
 import ResyProviderProfile from './components/resy/ProviderProfile';
 import ResyWaitlist from './components/resy/ResyWaitlist';
 import ResyAvailabilityGrid from './components/resy/ResyAvailabilityGrid';
@@ -88,7 +89,7 @@ function App() {
           
           {/* Resy-inspired public routes */}
           <Route path="/" element={<ResyHomePage />} />
-          <Route path="/search" element={<ResyPatientBooking />} />
+          <Route path="/search" element={<ResyPatientBookingWithMap />} />
           <Route path="/provider/:id" element={<ResyProviderProfile />} />
           
           {/* Demo routes for Resy UI (temporary for showcase) */}
