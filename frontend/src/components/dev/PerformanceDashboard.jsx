@@ -168,7 +168,7 @@ const PerformanceDashboard = ({ isVisible = false }) => {
           <div className="optimization-tips">
             <h4>💡 Optimization Tips</h4>
             <ul>
-              <li>Components with render times > 16ms may cause frame drops</li>
+              <li>Components with render times &gt; 16ms may cause frame drops</li>
               <li>Use React.memo() for components that re-render frequently</li>
               <li>Consider virtualization for lists with many items</li>
               <li>Implement useCallback() for event handlers</li>

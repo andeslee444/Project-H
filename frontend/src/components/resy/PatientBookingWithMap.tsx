@@ -49,6 +49,37 @@ const PatientBookingWithMap: React.FC = () => {
   const [onWaitlist, setOnWaitlist] = useState<{ [key: string]: boolean }>({});
   const [savedProviders, setSavedProviders] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showSpecialtyDropdown, setShowSpecialtyDropdown] = useState(false);
+  const [showInsuranceDropdown, setShowInsuranceDropdown] = useState(false);
+  
+  // Mental health specialties
+  const specialties = [
+    'Anxiety Disorders',
+    'Depression',
+    'ADHD',
+    'Trauma & PTSD',
+    'Couples Therapy',
+    'Family Therapy',
+    'Substance Abuse',
+    'Eating Disorders',
+    'Bipolar Disorder',
+    'OCD',
+    'Child & Adolescent',
+    'Grief Counseling'
+  ];
+  
+  // Common insurance providers
+  const insuranceProviders = [
+    'Aetna',
+    'Blue Cross Blue Shield',
+    'Cigna',
+    'United Healthcare',
+    'Humana',
+    'Kaiser Permanente',
+    'Medicare',
+    'Medicaid',
+    'Self-Pay/Cash'
+  ];
   
   // Filters
   const [filters, setFilters] = useState({
@@ -213,11 +244,34 @@ const PatientBookingWithMap: React.FC = () => {
             
             {/* Quick Filters */}
             <div className="flex gap-2">
-              <button className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors whitespace-nowrap">
-                Today
+              <button 
+                className={`px-4 py-2 text-sm font-medium rounded-full transition-colors whitespace-nowrap flex items-center gap-1 ${
+                  filters.modality === 'inPerson' 
+                    ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' 
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+                onClick={() => setFilters({ ...filters, modality: filters.modality === 'inPerson' ? 'both' : 'inPerson' })}
+              >
+                <Building className="w-4 h-4" />
+                In-Person
               </button>
-              <button className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors whitespace-nowrap">
-                All Day
+              <button 
+                className={`px-4 py-2 text-sm font-medium rounded-full transition-colors whitespace-nowrap flex items-center gap-1 ${
+                  filters.insurance !== '' 
+                    ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' 
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+                onClick={() => {/* TODO: Open insurance filter */}}
+              >
+                <Shield className="w-4 h-4" />
+                Insurance
+              </button>
+              <button 
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors whitespace-nowrap flex items-center gap-1"
+                onClick={() => {/* TODO: Open advanced filters */}}
+              >
+                <Filter className="w-4 h-4" />
+                More Filters
               </button>
             </div>
           </div>
@@ -244,17 +298,60 @@ const PatientBookingWithMap: React.FC = () => {
                     ? 'bg-gray-900 text-white' 
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
+                onClick={() => setFilters({ ...filters, specialty: '' })}
               >
-                All Specialties
+                All Providers
               </button>
-              <button className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
-                Seating
+              <button 
+                className={`px-3 py-1.5 text-sm font-medium rounded-full transition-colors ${
+                  filters.specialty === 'Anxiety Disorders' 
+                    ? 'bg-gray-900 text-white' 
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+                onClick={() => setFilters({ ...filters, specialty: 'Anxiety Disorders' })}
+              >
+                Anxiety
               </button>
-              <button className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
-                Cuisine
+              <button 
+                className={`px-3 py-1.5 text-sm font-medium rounded-full transition-colors ${
+                  filters.specialty === 'Depression' 
+                    ? 'bg-gray-900 text-white' 
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+                onClick={() => setFilters({ ...filters, specialty: 'Depression' })}
+              >
+                Depression
               </button>
-              <button className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
-                Lists
+              <button 
+                className={`px-3 py-1.5 text-sm font-medium rounded-full transition-colors ${
+                  filters.specialty === 'Couples Therapy' 
+                    ? 'bg-gray-900 text-white' 
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+                onClick={() => setFilters({ ...filters, specialty: 'Couples Therapy' })}
+              >
+                Couples
+              </button>
+              <button 
+                className={`px-3 py-1.5 text-sm font-medium rounded-full transition-colors ${
+                  filters.modality === 'virtual' 
+                    ? 'bg-gray-900 text-white' 
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+                onClick={() => setFilters({ ...filters, modality: filters.modality === 'virtual' ? 'both' : 'virtual' })}
+              >
+                <Video className="w-4 h-4 inline mr-1" />
+                Virtual
+              </button>
+              <button 
+                className={`px-3 py-1.5 text-sm font-medium rounded-full transition-colors ${
+                  filters.availability === 'today' 
+                    ? 'bg-gray-900 text-white' 
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+                onClick={() => setFilters({ ...filters, availability: filters.availability === 'today' ? 'any' : 'today' })}
+              >
+                Available Today
               </button>
             </div>
           </div>
