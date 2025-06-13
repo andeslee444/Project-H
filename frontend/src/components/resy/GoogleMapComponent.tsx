@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback, useState } from 'react';
+import MapComponent from './MapComponent'; // Fallback map component
 
 interface Provider {
   id: string;
@@ -33,12 +34,15 @@ const GoogleMapComponent: React.FC<GoogleMapComponentProps> = ({
   const mapRef = useRef<HTMLDivElement>(null);
   const googleMapRef = useRef<any>(null);
   const markersRef = useRef<{ [key: string]: any }>({});
+  const [mapLoadError, setMapLoadError] = useState(false);
+  const [mapLoading, setMapLoading] = useState(true);
 
   const initializeMap = useCallback(() => {
     if (!window.google || !mapRef.current || googleMapRef.current) return;
 
-    // Initialize the map
-    const map = new window.google.maps.Map(mapRef.current, {
+    try {
+      // Initialize the map
+      const map = new window.google.maps.Map(mapRef.current, {
       center: { lat: 40.7128, lng: -74.0060 }, // NYC coordinates
       zoom: 12,
       styles: [
@@ -102,18 +106,43 @@ const GoogleMapComponent: React.FC<GoogleMapComponentProps> = ({
       });
       map.fitBounds(bounds);
     }
+    
+    setMapLoading(false);
+    } catch (error) {
+      console.error('Error initializing Google Maps:', error);
+      setMapLoadError(true);
+      setMapLoading(false);
+    }
   }, [providers, onProviderSelect]);
 
   // Initialize map when Google Maps is loaded
   useEffect(() => {
+    // Check if we're in demo mode
+    const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.GITHUB_PAGES === 'true';
+    
+    if (isDemoMode) {
+      setMapLoadError(true);
+      setMapLoading(false);
+      return;
+    }
+    
     if (window.google) {
       initializeMap();
     } else {
       // Wait for Google Maps to load
+      let attempts = 0;
+      const maxAttempts = 50; // 5 seconds timeout
+      
       const checkGoogleMaps = setInterval(() => {
+        attempts++;
         if (window.google) {
           clearInterval(checkGoogleMaps);
           initializeMap();
+        } else if (attempts >= maxAttempts) {
+          clearInterval(checkGoogleMaps);
+          console.warn('Google Maps failed to load, using fallback');
+          setMapLoadError(true);
+          setMapLoading(false);
         }
       }, 100);
 
@@ -146,6 +175,30 @@ const GoogleMapComponent: React.FC<GoogleMapComponentProps> = ({
       }
     });
   }, [hoveredProvider, selectedProvider]);
+
+  // If there's an error or in demo mode, use the fallback map
+  if (mapLoadError || mapLoading) {
+    if (mapLoadError) {
+      return (
+        <MapComponent
+          providers={providers}
+          selectedProvider={selectedProvider}
+          hoveredProvider={hoveredProvider}
+          onProviderSelect={onProviderSelect}
+        />
+      );
+    }
+    
+    // Show loading state
+    return (
+      <div className="w-full h-full rounded-lg bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading map...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div ref={mapRef} className="w-full h-full rounded-lg" />
