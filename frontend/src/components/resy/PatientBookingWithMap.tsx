@@ -1,30 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Search, Filter, MapPin, Clock, Calendar, ChevronRight, 
-  Star, Heart, Info, Shield, Video, Building, X,
-  Check, AlertCircle, Plus, Minus, ExternalLink
+  Star, Heart, Info, Shield, Video, Building,
+  Check, AlertCircle, Plus, Minus, ExternalLink, MoreVertical
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import GoogleMapComponent from './GoogleMapComponent';
+import { useProvidersSupabase } from '../../hooks/useProvidersSupabase';
 
 interface Provider {
-  id: string;
-  name: string;
+  provider_id: string;
+  first_name: string;
+  last_name: string;
+  name?: string;
   title: string;
-  photo: string;
+  photo?: string;
   specialties: string[];
   rating: number;
   reviews: number;
   insurance: string[];
+  insurance_accepted?: string[];
   availability: {
     today: string[];
     tomorrow: string[];
     thisWeek: number;
   };
-  nextAvailable: string;
-  virtual: boolean;
-  inPerson: boolean;
+  next_available: string;
+  virtual_available: boolean;
+  in_person_available: boolean;
   location?: string;
   coordinates?: {
     lat: number;
@@ -32,25 +36,19 @@ interface Provider {
   };
   bio: string;
   languages: string[];
-  waitlistCount: number;
+  waitlist_count: number;
 }
 
-interface TimeSlot {
-  date: string;
-  time: string;
-  available: boolean;
-}
 
 
 const PatientBookingWithMap: React.FC = () => {
   const navigate = useNavigate();
+  const { providers: supabaseProviders = [], loading, error, searchProviders, filterProviders } = useProvidersSupabase();
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
   const [hoveredProvider, setHoveredProvider] = useState<Provider | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [selectedTime, setSelectedTime] = useState<string>('');
-  const [showBookingModal, setShowBookingModal] = useState(false);
   const [onWaitlist, setOnWaitlist] = useState<{ [key: string]: boolean }>({});
   const [savedProviders, setSavedProviders] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
   
   // Filters
   const [filters, setFilters] = useState({
@@ -61,8 +59,44 @@ const PatientBookingWithMap: React.FC = () => {
     preferredTimes: [] as string[]
   });
 
-  // Mock providers data with coordinates
-  const providers: Provider[] = [
+  // Process providers data
+  const providers: Provider[] = supabaseProviders.map((p, index) => ({
+    ...p,
+    id: p.provider_id,
+    name: p.name || `${p.first_name} ${p.last_name}`,
+    photo: p.photo || `https://i.pravatar.cc/150?u=${p.provider_id}`,
+    insurance: p.insurance_accepted || p.insurance || [],
+    virtual: p.virtual_available,
+    inPerson: p.in_person_available,
+    nextAvailable: p.next_available,
+    waitlistCount: p.waitlist_count,
+    // Add mock coordinates for NYC area
+    coordinates: {
+      lat: 40.7128 + (Math.random() - 0.5) * 0.1,
+      lng: -74.0060 + (Math.random() - 0.5) * 0.1
+    },
+    location: p.location || `${['Manhattan', 'Brooklyn', 'Queens', 'Bronx'][index % 4]}, NY`
+  }));
+
+  // Filter providers based on search and filters
+  const filteredProviders = React.useMemo(() => {
+    let result = [...providers];
+    
+    // Apply search
+    if (searchTerm) {
+      result = searchProviders(searchTerm);
+    }
+    
+    // Apply filters
+    if (filters.specialty || filters.insurance || filters.modality !== 'both' || filters.availability !== 'any') {
+      result = filterProviders(filters);
+    }
+    
+    return result;
+  }, [providers, searchTerm, filters, searchProviders, filterProviders]);
+
+  // Remove the mock providers array
+  /*const providers: Provider[] = [
     {
       id: '1',
       name: 'Dr. Sarah Chen',
@@ -132,7 +166,7 @@ const PatientBookingWithMap: React.FC = () => {
       languages: ['English'],
       waitlistCount: 25
     }
-  ];
+  ];*/
 
   const handleJoinWaitlist = (providerId: string) => {
     setOnWaitlist({ ...onWaitlist, [providerId]: !onWaitlist[providerId] });
@@ -146,27 +180,6 @@ const PatientBookingWithMap: React.FC = () => {
     }
   };
 
-  const generateTimeSlots = (provider: Provider): TimeSlot[] => {
-    const slots: TimeSlot[] = [];
-    const dates = [new Date(), new Date(Date.now() + 86400000), new Date(Date.now() + 172800000)];
-    
-    dates.forEach((date, dateIndex) => {
-      const daySlots = dateIndex === 0 ? provider.availability.today :
-                      dateIndex === 1 ? provider.availability.tomorrow : [];
-      
-      if (daySlots.length > 0) {
-        daySlots.forEach(time => {
-          slots.push({
-            date: date.toLocaleDateString(),
-            time,
-            available: true
-          });
-        });
-      }
-    });
-    
-    return slots;
-  };
 
   const togglePreferredTime = (time: string) => {
     setFilters(prev => ({
@@ -178,119 +191,150 @@ const PatientBookingWithMap: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       {/* Search Header */}
-      <div className="bg-white shadow-sm border-b sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex flex-col md:flex-row gap-4">
+      <div className="bg-white border-b sticky top-0 z-20">
+        <div className="px-4 py-3">
+          <div className="flex items-center gap-4">
+            {/* Logo/Title */}
+            <h1 className="text-xl font-semibold text-gray-900 whitespace-nowrap">MindfulMatch</h1>
+            
             {/* Search Bar */}
-            <div className="flex-1 relative">
+            <div className="flex-1 relative max-w-2xl">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search by specialty, condition, or provider name..."
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors"
               />
             </div>
             
             {/* Quick Filters */}
             <div className="flex gap-2">
-              <button className="px-4 py-2 border rounded-lg hover:bg-gray-50 flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                Available Now
+              <button className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors whitespace-nowrap">
+                Today
               </button>
-              <button className="px-4 py-2 border rounded-lg hover:bg-gray-50 flex items-center gap-2">
-                <Video className="w-4 h-4" />
-                Virtual
-              </button>
-              <button className="px-4 py-2 border rounded-lg hover:bg-gray-50 flex items-center gap-2">
-                <Filter className="w-4 h-4" />
-                More Filters
+              <button className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors whitespace-nowrap">
+                All Day
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Side - Provider List */}
-          <div className="space-y-4">
-            {/* Preferences Bar */}
-            <div className="bg-white rounded-lg shadow-sm border p-4">
-              <div className="flex justify-between items-center mb-3">
-                <h2 className="text-lg font-semibold">Available Providers</h2>
-                <p className="text-sm text-gray-600">{providers.length} providers found</p>
-              </div>
-              
-              {/* Preference Buttons */}
-              <div className="flex flex-wrap gap-2">
-                <span className="text-sm text-gray-600 mr-2">Preferred times:</span>
-                {['Morning', 'Afternoon', 'Evening', 'Weekend'].map((time) => (
-                  <button
-                    key={time}
-                    onClick={() => togglePreferredTime(time)}
-                    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                      filters.preferredTimes.includes(time)
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    {time}
-                  </button>
-                ))}
-              </div>
+      {/* Main Content - Full Width */}
+      <div className="flex h-[calc(100vh-60px)]">
+        {/* Left Side - Provider List */}
+        <div className="w-[480px] overflow-y-auto border-r">
+          {/* Header with Filters */}
+          <div className="sticky top-0 bg-white z-10 px-4 py-3 border-b">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-base font-medium">
+                {loading ? 'Loading...' : `${filteredProviders.length} providers available`}
+              </h2>
             </div>
+            
+            {/* Filter Tabs */}
+            <div className="flex gap-1">
+              <button
+                className={`px-3 py-1.5 text-sm font-medium rounded-full transition-colors ${
+                  filters.specialty === '' 
+                    ? 'bg-gray-900 text-white' 
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                All Specialties
+              </button>
+              <button className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
+                Seating
+              </button>
+              <button className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
+                Cuisine
+              </button>
+              <button className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
+                Lists
+              </button>
+            </div>
+          </div>
 
-            {/* Provider Cards */}
-            {providers.map((provider) => (
+          {/* Provider Cards */}
+          <div className="px-4 py-2">
+            {loading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-900"></div>
+              </div>
+            ) : error ? (
+              <div className="bg-red-50 text-red-700 p-4 rounded-lg m-4">
+                <p>Error loading providers: {error}</p>
+              </div>
+            ) : filteredProviders.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-600">No providers found matching your criteria.</p>
+              </div>
+            ) : (
+              filteredProviders.map((provider) => (
               <motion.div
-                key={provider.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => setSelectedProvider(provider)}
+                key={provider.provider_id}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="border-b hover:bg-gray-50 transition-colors cursor-pointer"
+                onClick={() => navigate(`/provider/${provider.provider_id}`)}
                 onMouseEnter={() => setHoveredProvider(provider)}
                 onMouseLeave={() => setHoveredProvider(null)}
               >
-                <div className="p-6">
+                <div className="py-4">
                   <div className="flex gap-4">
                     {/* Provider Photo */}
                     <img
                       src={provider.photo}
                       alt={provider.name}
-                      className="w-24 h-24 rounded-lg object-cover"
+                      className="w-20 h-20 rounded-lg object-cover"
                     />
                     
                     {/* Provider Info */}
                     <div className="flex-1">
                       <div className="flex justify-between items-start">
                         <div>
-                          <h3 className="text-lg font-semibold">{provider.name}</h3>
-                          <p className="text-gray-600">{provider.title}</p>
-                          
-                          {/* Rating */}
-                          <div className="flex items-center gap-2 mt-1">
-                            <div className="flex items-center">
-                              <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                              <span className="ml-1 text-sm font-medium">{provider.rating}</span>
+                          <h3 className="font-semibold text-gray-900">{provider.name}</h3>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <div className="flex">
+                              {[...Array(5)].map((_, i) => (
+                                <Star 
+                                  key={i}
+                                  className={`w-3 h-3 ${
+                                    i < Math.floor(provider.rating) 
+                                      ? 'text-red-500 fill-current' 
+                                      : 'text-gray-300'
+                                  }`} 
+                                />
+                              ))}
                             </div>
-                            <span className="text-sm text-gray-500">({provider.reviews} reviews)</span>
+                            <span className="text-sm text-gray-600">
+                              {provider.rating} ({provider.reviews} reviews) · {provider.title}
+                            </span>
                           </div>
+                          <p className="text-sm text-gray-600 mt-0.5">
+                            {provider.specialties.slice(0, 2).join(', ')}
+                            {provider.specialties.length > 2 && ` +${provider.specialties.length - 2}`}
+                          </p>
+                          <p className="text-sm text-gray-500 mt-0.5">
+                            {provider.location?.split(',')[0]} · {provider.insurance[0]}
+                          </p>
                         </div>
                         
                         {/* Save Button */}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleSaveProvider(provider.id);
+                            handleSaveProvider(provider.provider_id);
                           }}
                           className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                         >
                           <Heart 
                             className={`w-5 h-5 ${
-                              savedProviders.includes(provider.id) 
+                              savedProviders.includes(provider.provider_id) 
                                 ? 'text-red-500 fill-current' 
                                 : 'text-gray-400'
                             }`}
@@ -298,212 +342,80 @@ const PatientBookingWithMap: React.FC = () => {
                         </button>
                       </div>
                       
-                      {/* Specialties */}
-                      <div className="flex flex-wrap gap-2 mt-3">
-                        {provider.specialties.slice(0, 3).map((specialty) => (
-                          <span
-                            key={specialty}
-                            className="px-2 py-1 bg-blue-50 text-blue-700 rounded-full text-sm"
-                          >
-                            {specialty}
-                          </span>
-                        ))}
-                        {provider.specialties.length > 3 && (
-                          <span className="px-2 py-1 text-gray-500 text-sm">
-                            +{provider.specialties.length - 3} more
-                          </span>
-                        )}
-                      </div>
-                      
-                      {/* Location & Modality */}
-                      <div className="flex items-center gap-4 mt-3 text-sm text-gray-600">
-                        <div className="flex items-center gap-1">
-                          <MapPin className="w-4 h-4" />
-                          <span>{provider.location?.split(',')[0]}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          {provider.virtual && <Video className="w-4 h-4" />}
-                          {provider.inPerson && <Building className="w-4 h-4" />}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Availability Preview */}
-                  <div className="mt-4 pt-4 border-t">
-                    <div className="flex justify-between items-center">
-                      <div>
+                      {/* Time Slots */}
+                      <div className="flex gap-1.5 mt-3">
                         {provider.availability.today.length > 0 ? (
-                          <div>
-                            <p className="text-sm text-gray-600">Available today:</p>
-                            <div className="flex gap-2 mt-1">
-                              {provider.availability.today.slice(0, 3).map((time) => (
-                                <button
-                                  key={time}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedProvider(provider);
-                                    setSelectedTime(time);
-                                    setShowBookingModal(true);
-                                  }}
-                                  className="px-3 py-1 bg-green-50 text-green-700 rounded text-sm hover:bg-green-100"
-                                >
-                                  {time}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
+                          provider.availability.today.slice(0, 4).map((time) => (
+                            <button
+                              key={time}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/provider/${provider.provider_id}`);
+                              }}
+                              className="group"
+                            >
+                              <div className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 transition-colors">
+                                {time}
+                              </div>
+                              <div className="text-xs text-gray-500 mt-0.5">
+                                {provider.virtual_available ? 'Virtual' : 'In-person'}
+                              </div>
+                            </button>
+                          ))
+                        ) : provider.availability.tomorrow.length > 0 ? (
+                          provider.availability.tomorrow.slice(0, 4).map((time) => (
+                            <button
+                              key={time}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/provider/${provider.provider_id}`);
+                              }}
+                              className="group"
+                            >
+                              <div className="px-3 py-1.5 bg-gray-800 text-white rounded text-sm font-medium hover:bg-gray-900 transition-colors">
+                                {time}
+                              </div>
+                              <div className="text-xs text-gray-500 mt-0.5">
+                                {provider.virtual_available ? 'Virtual' : 'In-person'}
+                              </div>
+                            </button>
+                          ))
                         ) : (
-                          <div>
-                            <p className="text-sm text-gray-600">Next available:</p>
-                            <p className="text-sm font-medium text-gray-900">{provider.nextAvailable}</p>
-                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleJoinWaitlist(provider.provider_id);
+                            }}
+                            className="px-4 py-1.5 bg-gray-200 text-gray-700 rounded text-sm font-medium hover:bg-gray-300 transition-colors"
+                          >
+                            Join Waitlist
+                          </button>
+                        )}
+                        {(provider.availability.today.length > 4 || provider.availability.tomorrow.length > 4) && (
+                          <button className="p-1.5 hover:bg-gray-100 rounded transition-colors">
+                            <MoreVertical className="w-4 h-4 text-gray-500" />
+                          </button>
                         )}
                       </div>
-                      
-                      {/* Action Button */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleJoinWaitlist(provider.id);
-                        }}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                          onWaitlist[provider.id]
-                            ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            : 'bg-blue-600 text-white hover:bg-blue-700'
-                        }`}
-                      >
-                        {onWaitlist[provider.id] ? 'On Waitlist' : 'Join Waitlist'}
-                      </button>
                     </div>
                   </div>
                 </div>
               </motion.div>
-            ))}
+            )))}
           </div>
+        </div>
 
-          {/* Right Side - Map */}
-          <div className="sticky top-20 h-[600px]">
-            <div className="bg-white rounded-lg shadow-sm border h-full p-2">
-              <GoogleMapComponent
-                providers={providers}
-                selectedProvider={selectedProvider}
-                hoveredProvider={hoveredProvider}
-                onProviderSelect={setSelectedProvider}
-              />
-            </div>
-          </div>
+        {/* Right Side - Map */}
+        <div className="flex-1 relative">
+          <GoogleMapComponent
+            providers={filteredProviders}
+            selectedProvider={selectedProvider}
+            hoveredProvider={hoveredProvider}
+            onProviderSelect={setSelectedProvider}
+          />
         </div>
       </div>
 
-      {/* Booking Modal */}
-      <AnimatePresence>
-        {showBookingModal && selectedProvider && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-            onClick={() => setShowBookingModal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-6">
-                  <div>
-                    <h3 className="text-2xl font-semibold">Book Appointment</h3>
-                    <p className="text-gray-600 mt-1">with {selectedProvider.name}</p>
-                  </div>
-                  <button
-                    onClick={() => setShowBookingModal(false)}
-                    className="p-2 hover:bg-gray-100 rounded-full"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-                
-                {/* Calendar View */}
-                <div className="mb-6">
-                  <h4 className="font-medium mb-3">Select a date and time</h4>
-                  
-                  {/* Date Selector */}
-                  <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-                    {[0, 1, 2, 3, 4, 5, 6].map((dayOffset) => {
-                      const date = new Date();
-                      date.setDate(date.getDate() + dayOffset);
-                      const isSelected = selectedDate.toDateString() === date.toDateString();
-                      
-                      return (
-                        <button
-                          key={dayOffset}
-                          onClick={() => setSelectedDate(date)}
-                          className={`px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
-                            isSelected
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-gray-100 hover:bg-gray-200'
-                          }`}
-                        >
-                          <div className="text-xs">
-                            {date.toLocaleDateString('en-US', { weekday: 'short' })}
-                          </div>
-                          <div className="font-medium">
-                            {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  
-                  {/* Time Slots */}
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                    {generateTimeSlots(selectedProvider).map((slot, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setSelectedTime(slot.time)}
-                        disabled={!slot.available}
-                        className={`p-3 rounded-lg text-sm font-medium transition-colors ${
-                          selectedTime === slot.time
-                            ? 'bg-blue-600 text-white'
-                            : slot.available
-                            ? 'bg-gray-100 hover:bg-gray-200'
-                            : 'bg-gray-50 text-gray-400 cursor-not-allowed'
-                        }`}
-                      >
-                        {slot.time}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                
-                {/* Action Buttons */}
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => {
-                      alert('Appointment booked!');
-                      setShowBookingModal(false);
-                    }}
-                    disabled={!selectedTime}
-                    className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-gray-300"
-                  >
-                    Confirm Booking
-                  </button>
-                  <button
-                    onClick={() => setShowBookingModal(false)}
-                    className="px-6 py-3 border rounded-lg hover:bg-gray-50"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };

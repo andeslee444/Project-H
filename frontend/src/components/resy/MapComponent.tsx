@@ -2,7 +2,8 @@ import React, { useEffect, useRef } from 'react';
 import { MapPin } from 'lucide-react';
 
 interface Provider {
-  id: string;
+  id?: string;
+  provider_id?: string;
   name: string;
   location?: string;
   coordinates?: {
@@ -80,12 +81,13 @@ const MapComponent: React.FC<MapComponentProps> = ({
         if (!provider.coordinates) return null;
         
         const position = getPosition(provider.coordinates.lat, provider.coordinates.lng);
-        const isHovered = hoveredProvider?.id === provider.id;
-        const isSelected = selectedProvider?.id === provider.id;
+        const providerId = provider.provider_id || provider.id || '';
+        const isHovered = hoveredProvider?.provider_id === providerId || hoveredProvider?.id === providerId;
+        const isSelected = selectedProvider?.provider_id === providerId || selectedProvider?.id === providerId;
         
         return (
           <div
-            key={provider.id}
+            key={providerId}
             className={`absolute transform -translate-x-1/2 -translate-y-full cursor-pointer transition-all duration-300 ${
               isHovered || isSelected ? 'z-20' : 'z-10'
             }`}

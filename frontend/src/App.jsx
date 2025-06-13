@@ -90,18 +90,11 @@ function App() {
           {/* Resy-inspired public routes */}
           <Route path="/" element={<ResyHomePage />} />
           <Route path="/search" element={<ResyPatientBookingWithMap />} />
-          <Route path="/provider/:id" element={<ResyProviderProfile />} />
+          <Route path="/provider/:providerId" element={<ResyProviderProfile />} />
           
           {/* Demo routes for Resy UI (temporary for showcase) */}
           <Route path="/demo/provider-dashboard" element={<ResyProviderDashboard />} />
           <Route path="/demo/patient-booking" element={<ResyPatientBooking />} />
-          
-          {/* Public waitlist with layout for testing */}
-          <Route path="/waitlist" element={
-            <PublicNavWrapper>
-              <ResyWaitlist />
-            </PublicNavWrapper>
-          } />
           
           {/* Protected routes for practice staff - Resy UI */}
           <Route path="/" element={
@@ -113,7 +106,7 @@ function App() {
             <Route path="dashboard-provider" element={<ResyProviderDashboard />} />
             <Route path="dashboard-old" element={<Dashboard />} />
             <Route path="dashboard-legacy" element={<ProviderDashboard />} />
-            <Route path="waitlist-protected" element={<ResyWaitlist />} />
+            <Route path="waitlist" element={<ResyWaitlist />} />
             <Route path="waitlist-old" element={<Waitlist />} />
             <Route path="schedule" element={<ResyAvailabilityGrid />} />
             <Route path="schedule-advanced" element={<ProviderScheduler />} />

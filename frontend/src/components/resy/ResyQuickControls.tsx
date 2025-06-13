@@ -149,9 +149,9 @@ const ResyQuickControls: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b">
+      <div className="bg-white border-b flex-shrink-0">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div>
@@ -192,8 +192,10 @@ const ResyQuickControls: React.FC = () => {
         </div>
       </div>
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      {/* Main Content - Scrollable Area */}
+      <div className="flex-1 overflow-y-auto bg-gray-50">
+        {/* Content */}
+        <div className="max-w-7xl mx-auto px-4 py-6">
         <AnimatePresence mode="wait">
           {activeTab === 'quick' && (
             <motion.div
@@ -520,6 +522,7 @@ const ResyQuickControls: React.FC = () => {
             </motion.div>
           )}
         </AnimatePresence>
+      </div>
       </div>
     </div>
   );

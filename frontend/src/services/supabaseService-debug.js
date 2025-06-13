@@ -41,7 +41,8 @@ class SupabaseServiceDebug {
       
       // Use direct REST API call with embedded resources to get related data
       // This uses PostgREST's resource embedding syntax
-      const fullDataUrl = `${supabase.supabaseUrl}/rest/v1/waitlist_entries?select=*,patients(*),providers(*),waitlists(*)&limit=10`;
+      // Note: limit is set to 10 to ensure we get a subset of patients, not all
+      const fullDataUrl = `${supabase.supabaseUrl}/rest/v1/waitlist_entries?select=*,patients(*),providers(*),waitlists(*)&order=created_at.desc&limit=10`;
       const fullDataResponse = await fetch(fullDataUrl, {
         headers: {
           'apikey': supabase.supabaseKey,
@@ -76,15 +77,7 @@ class SupabaseServiceDebug {
         // The API returns embedded data with singular names (patients, providers, waitlists)
         const mappedData = data.map(entry => ({
           ...entry,
-          patient: entry.patients || {
-            patient_id: entry.patient_id,
-            first_name: 'Unknown',
-            last_name: 'Patient',
-            email: 'no-email@example.com',
-            phone: '(000) 000-0000',
-            preferences: { primaryCondition: 'Not specified' },
-            insurance_info: { provider: 'Not specified' }
-          },
+          patient: entry.patients || null,
           provider: entry.providers,
           waitlist: entry.waitlists
         }));

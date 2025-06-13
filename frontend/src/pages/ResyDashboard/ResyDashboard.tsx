@@ -214,9 +214,9 @@ const ResyDashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b">
+      <div className="bg-white border-b flex-shrink-0">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div>
@@ -237,7 +237,9 @@ const ResyDashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      {/* Main Content - Scrollable Area */}
+      <div className="flex-1 overflow-y-auto bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {quickStats.map((stat, index) => (
@@ -446,6 +448,7 @@ const ResyDashboard: React.FC = () => {
             </button>
           </div>
         </motion.div>
+      </div>
       </div>
 
       {/* Quick Notification Preview Modal */}

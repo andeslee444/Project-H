@@ -6,8 +6,6 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWaitlist } from '../../hooks/useWaitlist';
-import WaitlistDebugger from '../debug/WaitlistDebugger';
-import { DebugFetch } from '../DebugFetch';
 
 interface WaitlistPatient {
   id: string;
@@ -148,9 +146,9 @@ const ResyWaitlist: React.FC = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b">
+      <div className="bg-white border-b flex-shrink-0">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div>
@@ -250,8 +248,10 @@ const ResyWaitlist: React.FC = () => {
         </div>
       </div>
 
-      {/* Available Slots Preview */}
-      <div className="max-w-7xl mx-auto px-4 pb-4">
+      {/* Main Content - Scrollable Area */}
+      <div className="flex-1 overflow-y-auto bg-gray-50">
+        {/* Available Slots Preview */}
+        <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
           <h3 className="font-medium text-green-900 mb-3">Available Slots to Fill</h3>
           <div className="grid grid-cols-4 gap-3">
@@ -303,7 +303,7 @@ const ResyWaitlist: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
-              className="border-b last:border-b-0 p-6 hover:bg-gray-50"
+              className="border-b last:border-b-0 p-4 hover:bg-gray-50 transition-colors"
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-4">
@@ -322,82 +322,69 @@ const ResyWaitlist: React.FC = () => {
                   />
 
                   {/* Position Badge */}
-                  <div className="text-center">
-                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center font-bold text-blue-700">
-                      {patient.position}
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">in line</p>
+                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center font-semibold text-gray-700">
+                    {patient.position}
                   </div>
 
                   {/* Patient Photo */}
                   <img
                     src={patient.photo || `https://ui-avatars.com/api/?name=${patient.name}`}
                     alt={patient.name}
-                    className="w-12 h-12 rounded-full"
+                    className="w-10 h-10 rounded-full"
                   />
 
                   {/* Patient Info */}
                   <div className="flex-1">
                     <div className="flex items-center gap-3">
-                      <h3 className="font-semibold text-lg">{patient.name}</h3>
+                      <h3 className="font-medium text-base">{patient.name}</h3>
                       
                       {/* Badges */}
                       {patient.handRaised && (
-                        <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium flex items-center gap-1">
+                        <span className="px-1.5 py-0.5 bg-yellow-50 text-yellow-700 rounded text-xs font-medium flex items-center gap-1">
                           <HandMetal className="w-3 h-3" />
                           Hand Raised
                         </span>
                       )}
                       
                       {patient.matchScore > 90 && (
-                        <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                        <span className="px-1.5 py-0.5 bg-green-50 text-green-700 rounded text-xs font-medium">
                           {patient.matchScore}% Match
                         </span>
                       )}
 
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        patient.urgency === 'high' ? 'bg-red-100 text-red-700' :
-                        patient.urgency === 'medium' ? 'bg-orange-100 text-orange-700' :
-                        'bg-gray-100 text-gray-700'
+                      <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
+                        patient.urgency === 'high' ? 'bg-red-50 text-red-700' :
+                        patient.urgency === 'medium' ? 'bg-orange-50 text-orange-700' :
+                        'bg-gray-50 text-gray-700'
                       }`}>
                         {patient.urgency} urgency
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4 mt-3 text-sm">
-                      <div>
-                        <span className="text-gray-500">Condition:</span> {patient.condition}
+                    <div className="flex items-center gap-6 mt-2 text-sm text-gray-600">
+                      <div>{patient.condition}</div>
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {patient.preferredTimes.join(', ')}
                       </div>
-                      <div>
-                        <span className="text-gray-500">Insurance:</span> {patient.insurance}
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Provider:</span> {patient.provider}
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Preferred:</span> {patient.preferredTimes.join(', ')}
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Joined:</span> {patient.joinedDate}
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Response Rate:</span> {patient.responseRate}%
-                      </div>
+                      <div>{patient.insurance}</div>
+                      {patient.provider && <div>Provider: {patient.provider}</div>}
+                      <div className="text-gray-500">Joined {patient.joinedDate}</div>
                     </div>
 
                     {patient.notes && (
-                      <p className="text-sm text-gray-600 mt-2 italic">Note: {patient.notes}</p>
+                      <p className="text-xs text-gray-500 mt-1.5 italic">{patient.notes}</p>
                     )}
                   </div>
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-2">
-                  <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="Send message">
-                    <MessageSquare className="w-5 h-5" />
+                <div className="flex items-center gap-1">
+                  <button className="p-1.5 text-blue-600 hover:bg-blue-50 rounded" title="Send message">
+                    <MessageSquare className="w-4 h-4" />
                   </button>
-                  <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg" title="View details">
-                    <ChevronRight className="w-5 h-5" />
+                  <button className="p-1.5 text-gray-400 hover:text-gray-600 rounded" title="View details">
+                    <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -405,6 +392,7 @@ const ResyWaitlist: React.FC = () => {
             ))
           )}
         </div>
+      </div>
       </div>
 
       {/* Blast Notification Modal */}
@@ -509,9 +497,6 @@ const ResyWaitlist: React.FC = () => {
           </motion.div>
         )}
       </AnimatePresence>
-      {/* Debug Panel */}
-      <WaitlistDebugger />
-      <DebugFetch />
     </div>
   );
 };

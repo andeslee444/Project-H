@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Search, Filter, Star, Calendar, Clock, MessageSquare,
   AlertCircle, TrendingUp, User, Phone, Mail, Shield,
@@ -6,6 +6,7 @@ import {
   Bell, Send, FileText, Activity, DollarSign
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { usePatientsSupabase } from '../../hooks/usePatientsSupabase';
 
 interface Patient {
   id: string;
@@ -41,134 +42,98 @@ interface Patient {
 }
 
 const ResyGuestManagement: React.FC = () => {
+  const { patients: supabasePatients, loading, error, searchPatients, filterPatients } = usePatientsSupabase();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [selectedPatients, setSelectedPatients] = useState<string[]>([]);
   const [showBulkActions, setShowBulkActions] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
 
-  // Mock data
-  const patients: Patient[] = [
-    {
-      id: '1',
-      name: 'Sarah Johnson',
-      photo: 'https://i.pravatar.cc/150?img=1',
-      email: 'sarah.johnson@email.com',
-      phone: '(555) 123-4567',
-      reliabilityScore: 4.9,
-      totalVisits: 12,
-      preferredTimes: ['Morning'],
-      conditions: ['Anxiety', 'ADHD'],
-      insurance: {
-        provider: 'Blue Cross Blue Shield',
-        verified: true
-      },
-      lastSeen: '2 weeks ago',
-      provider: 'Dr. Chen',
-      status: 'active',
-      attendanceRate: 95,
-      averageRating: 4.8,
-      communicationPreference: 'sms',
-      tags: ['VIP', 'Reliable'],
-      notes: 'Prefers video sessions',
-      nextAppointment: {
-        date: 'Mar 15',
-        time: '10:00 AM',
-        provider: 'Dr. Chen'
-      },
-      isVIP: true,
-      cancellationCount: 1
+  // Transform Supabase patients to match component format
+  const patients: Patient[] = supabasePatients.map((p: any) => ({
+    id: p.patient_id,
+    name: `${p.first_name} ${p.last_name}`,
+    photo: `https://i.pravatar.cc/150?u=${p.patient_id}`,
+    email: p.email,
+    phone: p.phone,
+    reliabilityScore: Math.floor(Math.random() * 30) + 70, // Mock for now
+    totalVisits: Math.floor(Math.random() * 50) + 10,
+    preferredTimes: p.preferences?.preferredTimes || ['Morning'],
+    conditions: [p.preferences?.primaryCondition || 'General'],
+    insurance: {
+      provider: p.insurance_info?.provider || 'Unknown',
+      verified: p.insurance_info?.verified || false,
+      expiresIn: p.insurance_info?.expiresIn
     },
-    {
-      id: '2',
-      name: 'Michael Davis',
-      photo: 'https://i.pravatar.cc/150?img=2',
-      email: 'mdavis@email.com',
-      phone: '(555) 234-5678',
-      reliabilityScore: 3.8,
-      totalVisits: 8,
-      preferredTimes: ['Afternoon', 'Evening'],
-      conditions: ['Depression'],
-      insurance: {
-        provider: 'Aetna',
-        verified: true,
-        expiresIn: 30
-      },
-      lastSeen: '1 month ago',
-      provider: 'Dr. Rodriguez',
-      status: 'active',
-      attendanceRate: 75,
-      averageRating: 4.5,
-      communicationPreference: 'email',
-      tags: ['High Cancellation'],
-      cancellationCount: 3,
-      balance: 150
-    },
-    {
-      id: '3',
-      name: 'Emily Chen',
-      photo: 'https://i.pravatar.cc/150?img=3',
-      email: 'echen@email.com',
-      phone: '(555) 345-6789',
-      reliabilityScore: 4.5,
-      totalVisits: 3,
-      preferredTimes: ['Morning', 'Afternoon'],
-      conditions: ['Stress Management'],
-      insurance: {
-        provider: 'United Healthcare',
-        verified: false
-      },
-      lastSeen: '3 days ago',
-      provider: 'Dr. Williams',
-      status: 'new',
-      attendanceRate: 100,
-      communicationPreference: 'phone',
-      tags: ['New Patient'],
-      cancellationCount: 0
+    lastSeen: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
+    provider: 'Dr. Chen', // Mock for now
+    status: p.status || 'active',
+    attendanceRate: Math.floor(Math.random() * 20) + 80,
+    averageRating: 4 + Math.random(),
+    communicationPreference: p.preferences?.communicationPreference || 'email',
+    tags: p.tags || [],
+    notes: p.notes,
+    nextAppointment: Math.random() > 0.5 ? {
+      date: new Date(Date.now() + Math.random() * 14 * 24 * 60 * 60 * 1000).toISOString(),
+      time: '2:00 PM',
+      provider: 'Dr. Chen'
+    } : undefined,
+    balance: Math.random() > 0.7 ? Math.floor(Math.random() * 500) : 0,
+    isVIP: p.tags?.includes('VIP'),
+    cancellationCount: Math.floor(Math.random() * 5)
+  }));
+
+  // Filter patients based on search and filter
+  const filteredPatients = React.useMemo(() => {
+    let result = [...patients];
+    
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      result = result.filter(patient => 
+        patient.name.toLowerCase().includes(searchLower) ||
+        patient.email.toLowerCase().includes(searchLower) ||
+        patient.conditions.some(c => c.toLowerCase().includes(searchLower))
+      );
     }
-  ];
+    
+    switch (selectedFilter) {
+      case 'unseen30':
+        // Filter patients not seen in 30+ days
+        result = result.filter(p => {
+          const lastSeenDate = new Date(p.lastSeen);
+          const daysSince = (Date.now() - lastSeenDate.getTime()) / (1000 * 60 * 60 * 24);
+          return daysSince > 30;
+        });
+        break;
+      case 'highcancel':
+        result = result.filter(p => p.cancellationCount > 2);
+        break;
+      case 'vip':
+        result = result.filter(p => p.isVIP);
+        break;
+      case 'insurance':
+        result = result.filter(p => p.insurance.expiresIn && p.insurance.expiresIn < 60);
+        break;
+      case 'balance':
+        result = result.filter(p => p.balance && p.balance > 0);
+        break;
+    }
+    
+    return result;
+  }, [patients, searchTerm, selectedFilter]);
 
   const filters = [
     { id: 'all', label: 'All Patients', count: patients.length },
-    { id: 'unseen30', label: "Haven't seen in 30+ days", count: 2 },
-    { id: 'highcancel', label: 'High cancellation rate', count: 1 },
-    { id: 'vip', label: 'VIP/Priority patients', count: 1 },
-    { id: 'insurance', label: 'Insurance expiring soon', count: 1 },
-    { id: 'balance', label: 'Outstanding balance', count: 1 }
+    { id: 'unseen30', label: "Haven't seen in 30+ days", count: patients.filter(p => {
+      const lastSeenDate = new Date(p.lastSeen);
+      const daysSince = (Date.now() - lastSeenDate.getTime()) / (1000 * 60 * 60 * 24);
+      return daysSince > 30;
+    }).length },
+    { id: 'highcancel', label: 'High cancellation rate', count: patients.filter(p => p.cancellationCount > 2).length },
+    { id: 'vip', label: 'VIP/Priority patients', count: patients.filter(p => p.isVIP).length },
+    { id: 'insurance', label: 'Insurance expiring soon', count: patients.filter(p => p.insurance.expiresIn && p.insurance.expiresIn < 60).length },
+    { id: 'balance', label: 'Outstanding balance', count: patients.filter(p => p.balance && p.balance > 0).length }
   ];
-
-  const getFilteredPatients = () => {
-    let filtered = patients;
-
-    if (searchTerm) {
-      filtered = filtered.filter(patient => 
-        patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        patient.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        patient.conditions.some(c => c.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
-    }
-
-    switch (selectedFilter) {
-      case 'unseen30':
-        // In real app, calculate based on actual dates
-        filtered = filtered.filter(p => p.lastSeen.includes('month'));
-        break;
-      case 'highcancel':
-        filtered = filtered.filter(p => p.cancellationCount > 2);
-        break;
-      case 'vip':
-        filtered = filtered.filter(p => p.isVIP);
-        break;
-      case 'insurance':
-        filtered = filtered.filter(p => p.insurance.expiresIn && p.insurance.expiresIn < 60);
-        break;
-      case 'balance':
-        filtered = filtered.filter(p => p.balance && p.balance > 0);
-        break;
-    }
-
-    return filtered;
-  };
 
   const handleBulkAction = (action: string) => {
     console.log('Bulk action:', action, 'for patients:', selectedPatients);
@@ -176,12 +141,10 @@ const ResyGuestManagement: React.FC = () => {
     setSelectedPatients([]);
   };
 
-  const filteredPatients = getFilteredPatients();
-
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b">
+      <div className="bg-white border-b flex-shrink-0">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div>
@@ -285,10 +248,27 @@ const ResyGuestManagement: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Patient Cards Grid */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredPatients.map((patient, index) => (
+      {/* Main Content - Scrollable Area */}
+      <div className="flex-1 overflow-y-auto bg-gray-50">
+        {/* Patient Cards Grid */}
+        <div className="max-w-7xl mx-auto px-4 py-6">
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </div>
+        ) : error ? (
+          <div className="bg-red-50 text-red-700 p-4 rounded-lg">
+            <p>Error loading patients: {error}</p>
+          </div>
+        ) : filteredPatients.length === 0 ? (
+          <div className="text-center py-12">
+            <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-600 text-lg">No patients found</p>
+            <p className="text-gray-500 text-sm mt-2">Try adjusting your search or filters</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredPatients.map((patient, index) => (
             <motion.div
               key={patient.id}
               initial={{ opacity: 0, y: 20 }}
@@ -429,7 +409,8 @@ const ResyGuestManagement: React.FC = () => {
               </div>
             </motion.div>
           ))}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Quick Stats */}
@@ -476,6 +457,7 @@ const ResyGuestManagement: React.FC = () => {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

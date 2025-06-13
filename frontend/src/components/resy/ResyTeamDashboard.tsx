@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Users, Calendar, TrendingUp, Star, Clock, Copy,
   AlertCircle, CheckCircle, ChevronRight, MoreVertical,
@@ -6,6 +6,7 @@ import {
   Bell, Mail, Phone, BarChart3, Zap, Eye
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useProvidersSupabase } from '../../hooks/useProvidersSupabase';
 
 interface Provider {
   id: string;
@@ -36,12 +37,49 @@ interface Provider {
 }
 
 const ResyTeamDashboard: React.FC = () => {
+  const { providers: supabaseProviders, loading, error } = useProvidersSupabase();
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
   const [showCopyModal, setShowCopyModal] = useState(false);
   const [viewMode, setViewMode] = useState<'cards' | 'heatmap'>('cards');
 
-  // Mock data
-  const providers: Provider[] = [
+  // Transform Supabase providers to match component format
+  const providers: Provider[] = supabaseProviders.map((p: any) => ({
+    id: p.provider_id,
+    name: p.name || `${p.first_name} ${p.last_name}`,
+    title: p.title || 'Mental Health Professional',
+    photo: p.photo || `https://i.pravatar.cc/150?u=${p.provider_id}`,
+    utilization: Math.floor(Math.random() * 30) + 65, // Mock data for now
+    activePatients: Math.floor(Math.random() * 30) + 20,
+    nextAvailable: p.next_available || 'Today',
+    waitlistCount: p.waitlist_count || Math.floor(Math.random() * 15),
+    rating: p.rating || 4.5 + Math.random() * 0.5,
+    status: ['available', 'in-session', 'break', 'offline'][Math.floor(Math.random() * 4)] as any,
+    todayStats: {
+      seen: Math.floor(Math.random() * 5) + 2,
+      scheduled: Math.floor(Math.random() * 4) + 4,
+      noShows: Math.floor(Math.random() * 2)
+    },
+    weeklyHours: Math.floor(Math.random() * 20) + 20,
+    specialties: p.specialties || ['General Therapy'],
+    availability: {
+      Monday: [
+        { start: '9:00', end: '12:00', booked: 5, total: 6 },
+        { start: '13:00', end: '17:00', booked: 7, total: 8 }
+      ],
+      Tuesday: [
+        { start: '9:00', end: '12:00', booked: 6, total: 6 },
+        { start: '13:00', end: '17:00', booked: 6, total: 8 }
+      ]
+    },
+    upcomingLeave: Math.random() > 0.7 ? {
+      start: 'Mar 20',
+      end: 'Mar 27',
+      type: 'Vacation'
+    } : undefined
+  }));
+
+  // Remove the old mock data array
+  /*const providers: Provider[] = [
     {
       id: '1',
       name: 'Dr. Sarah Chen',
@@ -125,7 +163,7 @@ const ResyTeamDashboard: React.FC = () => {
         ]
       }
     }
-  ];
+  ];*/
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -162,9 +200,9 @@ const ResyTeamDashboard: React.FC = () => {
   const heatmapData = generateHeatmapData();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b">
+      <div className="bg-white border-b flex-shrink-0">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div>
@@ -200,8 +238,21 @@ const ResyTeamDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Content */}
-      {viewMode === 'cards' ? (
+      {/* Main Content - Scrollable Area */}
+      <div className="flex-1 overflow-y-auto bg-gray-50">
+        {loading ? (
+        <div className="max-w-7xl mx-auto px-4 py-12">
+          <div className="flex justify-center items-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </div>
+        </div>
+      ) : error ? (
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="bg-red-50 text-red-700 p-4 rounded-lg">
+            <p>Error loading team data: {error}</p>
+          </div>
+        </div>
+      ) : viewMode === 'cards' ? (
         <div className="max-w-7xl mx-auto px-4 py-6">
           {/* Team Insights Summary */}
           <div className="grid grid-cols-4 gap-4 mb-6">
@@ -479,6 +530,7 @@ const ResyTeamDashboard: React.FC = () => {
           </div>
         </div>
       )}
+      </div>
 
       {/* Schedule Detail Modal */}
       <AnimatePresence>

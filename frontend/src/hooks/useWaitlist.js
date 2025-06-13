@@ -5,76 +5,32 @@ import { supabaseServiceDebug } from '../services/supabaseService-debug';
 // Check if we're in demo mode (GitHub Pages)
 const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.GITHUB_PAGES === 'true';
 
-// Define mock data at module level
+// Define mock data at module level - subset of patients from the full patient list
 const mockEntries = [
   {
     entry_id: '1',
-    patient_id: 'p1',
-    patient: {
-      first_name: 'John',
-      last_name: 'Smith',
-      email: 'john.smith@email.com',
-      phone: '(415) 555-0101',
-      preferences: {
-        primaryCondition: 'Anxiety',
-        preferredTimes: ['Morning', 'Early Afternoon']
-      },
-      insurance_info: {
-        provider: 'Blue Cross Blue Shield'
-      }
-    },
-    priority_score: 95,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    status: 'waiting',
-    notes: 'Urgent - experiencing increased anxiety'
-  },
-  {
-    entry_id: '2',
-    patient_id: 'p2',
-    patient: {
-      first_name: 'Emily',
-      last_name: 'Davis',
-      email: 'emily.davis@email.com',
-      phone: '(415) 555-0102',
-      preferences: {
-        primaryCondition: 'Depression',
-        preferredTimes: ['Evening']
-      },
-      insurance_info: {
-        provider: 'Aetna'
-      }
-    },
-    priority_score: 82,
-    created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    updated_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    status: 'waiting',
-    notes: null
-  },
-  {
-    entry_id: '3',
     patient_id: 'p3',
     patient: {
       first_name: 'Michael',
       last_name: 'Brown',
       email: 'michael.brown@email.com',
-      phone: '(415) 555-0103',
+      phone: '(415) 555-0105',
       preferences: {
-        primaryCondition: 'ADHD',
-        preferredTimes: ['Afternoon']
+        primaryCondition: 'New patient consultation',
+        preferredTimes: ['Flexible']
       },
       insurance_info: {
-        provider: 'United Healthcare'
+        provider: 'United'
       }
     },
     priority_score: 78,
-    created_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-    updated_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date().toISOString(),
     status: 'waiting',
-    notes: null
+    notes: 'New patient consultation'
   },
   {
-    entry_id: '4',
+    entry_id: '2',
     patient_id: 'p4',
     patient: {
       first_name: 'Sarah',
@@ -82,40 +38,84 @@ const mockEntries = [
       email: 'sarah.wilson@email.com',
       phone: '(415) 555-0104',
       preferences: {
-        primaryCondition: 'PTSD',
-        preferredTimes: ['Morning', 'Weekend']
+        primaryCondition: 'Prefers morning appointments',
+        preferredTimes: ['Flexible']
       },
       insurance_info: {
         provider: 'Cigna'
       }
     },
     priority_score: 90,
-    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     updated_at: new Date().toISOString(),
     status: 'waiting',
     notes: 'Prefers morning appointments'
   },
   {
-    entry_id: '5',
-    patient_id: 'p5',
+    entry_id: '3',
+    patient_id: 'p1',
     patient: {
-      first_name: 'David',
-      last_name: 'Martinez',
-      email: 'david.martinez@email.com',
-      phone: '(415) 555-0105',
+      first_name: 'John',
+      last_name: 'Doe',
+      email: 'john.doe@email.com',
+      phone: '(415) 555-0101',
       preferences: {
-        primaryCondition: 'Bipolar Disorder',
-        preferredTimes: ['Afternoon', 'Evening']
+        primaryCondition: 'Urgent - experiencing increased anxiety',
+        preferredTimes: ['morning', 'afternoon']
       },
       insurance_info: {
-        provider: 'Kaiser Permanente'
+        provider: 'Blue Cross Blue Shield'
       }
     },
-    priority_score: 85,
+    priority_score: 95,
+    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date().toISOString(),
+    status: 'waiting',
+    notes: 'Urgent - experiencing increased anxiety'
+  },
+  {
+    entry_id: '4',
+    patient_id: 'p5',
+    patient: {
+      first_name: 'Jane',
+      last_name: 'Smith',
+      email: 'jane.smith@email.com',
+      phone: '(415) 555-0102',
+      preferences: {
+        primaryCondition: 'New patient consultation',
+        preferredTimes: ['evening']
+      },
+      insurance_info: {
+        provider: 'Aetna'
+      }
+    },
+    priority_score: 82,
+    created_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date().toISOString(),
+    status: 'waiting',
+    notes: 'New patient consultation'
+  },
+  {
+    entry_id: '5',
+    patient_id: 'p6',
+    patient: {
+      first_name: 'Emma',
+      last_name: 'Johnson',
+      email: 'emma.johnson@email.com',
+      phone: '(415) 555-0107',
+      preferences: {
+        primaryCondition: 'Flexible with scheduling',
+        preferredTimes: ['Flexible']
+      },
+      insurance_info: {
+        provider: 'United Healthcare'
+      }
+    },
+    priority_score: 75,
     created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
     updated_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     status: 'waiting',
-    notes: null
+    notes: 'Flexible with scheduling'
   }
 ];
 
@@ -147,23 +147,23 @@ export function useWaitlist() {
         if (entries && entries.length > 0) {
           const formattedEntries = entries.map((entry, index) => ({
             id: entry.entry_id,
-            name: entry.patient ? `${entry.patient.first_name} ${entry.patient.last_name}` : 'Unknown Patient',
-            email: entry.patient?.email || 'No email',
-            phone: entry.patient?.phone || 'No phone',
-            photo: `https://i.pravatar.cc/150?u=${entry.patient_id}`,
-            condition: entry.patient?.preferences?.modality || entry.patient?.preferences?.primaryCondition || entry.notes || 'Not specified',
-            insurance: entry.patient?.insurance_info?.provider || 'Not specified',
-            preferredTimes: entry.patient?.preferences?.preferredTimes || ['Any time'],
+            name: `${entry.patient.first_name} ${entry.patient.last_name}`,
+            email: entry.patient.email || 'No email',
+            phone: entry.patient.phone || 'No phone',
+            photo: entry.patient.photo || `https://i.pravatar.cc/150?u=${entry.patient_id}`,
+            condition: entry.patient.preferences?.primaryCondition || entry.notes || 'General',
+            insurance: entry.patient.insurance_info?.provider || 'Self-pay',
+            preferredTimes: entry.patient.preferences?.preferredTimes || ['Flexible'],
             joinedDate: new Date(entry.created_at).toLocaleDateString(),
             position: index + 1,
-            matchScore: entry.priority_score || 50,
+            matchScore: entry.priority_score || 75,
             handRaised: entry.priority_score > 80,
             urgency: entry.priority_score > 85 ? 'high' : entry.priority_score > 70 ? 'medium' : 'low',
             lastContact: entry.updated_at ? new Date(entry.updated_at).toLocaleDateString() : null,
-            responseRate: 75 + Math.random() * 25,
-            provider: entry.provider ? `Dr. ${entry.provider.last_name}` : null,
+            responseRate: Math.floor(70 + Math.random() * 30),
+            provider: entry.provider ? `Dr. ${entry.provider.last_name}` : 'Unassigned',
             notes: entry.notes || '',
-            status: entry.status,
+            status: entry.status || 'waiting',
             waitlistName: entry.waitlist?.name || 'General Waitlist'
           }));
           setWaitlistEntries(formattedEntries);
@@ -212,28 +212,36 @@ export function useWaitlist() {
       
       if (dataToUse) {
         // Transform the data to match the frontend format
-        const formattedEntries = dataToUse.map((entry, index) => ({
-          id: entry.entry_id,
-          name: entry.patient ? `${entry.patient.first_name} ${entry.patient.last_name}` : 'Unknown Patient',
-          email: entry.patient?.email || 'No email',
-          phone: entry.patient?.phone || 'No phone',
-          photo: `https://i.pravatar.cc/150?u=${entry.patient_id}`,
-          // Map modality to condition for now
-          condition: entry.patient?.preferences?.modality || entry.notes || 'Not specified',
-          insurance: entry.patient?.insurance_info?.provider || 'Not specified',
-          preferredTimes: entry.patient?.preferences?.preferredTimes || ['Any time'],
-          joinedDate: new Date(entry.created_at).toLocaleDateString(),
-          position: index + 1,
-          matchScore: entry.priority_score || 50,
-          handRaised: entry.priority_score > 80,
-          urgency: entry.priority_score > 85 ? 'high' : entry.priority_score > 70 ? 'medium' : 'low',
-          lastContact: entry.updated_at ? new Date(entry.updated_at).toLocaleDateString() : null,
-          responseRate: 75 + Math.random() * 25, // Mock for now
-          provider: entry.provider ? `Dr. ${entry.provider.last_name}` : null,
-          notes: entry.notes || '',
-          status: entry.status,
-          waitlistName: entry.waitlist?.name || 'General Waitlist'
-        }));
+        const formattedEntries = dataToUse.map((entry, index) => {
+          // Skip entries without patient data
+          if (!entry.patient) {
+            console.warn(`Waitlist entry ${entry.entry_id} has no patient data`);
+            return null;
+          }
+          
+          return {
+            id: entry.entry_id,
+            name: `${entry.patient.first_name} ${entry.patient.last_name}`,
+            email: entry.patient.email || 'No email',
+            phone: entry.patient.phone || 'No phone',
+            photo: entry.patient.photo || `https://i.pravatar.cc/150?u=${entry.patient_id}`,
+            // Use primaryCondition from preferences, fallback to notes
+            condition: entry.patient.preferences?.primaryCondition || entry.notes || 'General',
+            insurance: entry.patient.insurance_info?.provider || 'Self-pay',
+            preferredTimes: entry.patient.preferences?.preferredTimes || ['Flexible'],
+            joinedDate: new Date(entry.created_at).toLocaleDateString(),
+            position: index + 1,
+            matchScore: entry.priority_score || 75,
+            handRaised: entry.priority_score > 80,
+            urgency: entry.priority_score > 85 ? 'high' : entry.priority_score > 70 ? 'medium' : 'low',
+            lastContact: entry.updated_at ? new Date(entry.updated_at).toLocaleDateString() : null,
+            responseRate: Math.floor(70 + Math.random() * 30), // Mock for now
+            provider: entry.provider ? `Dr. ${entry.provider.last_name}` : 'Unassigned',
+            notes: entry.notes || '',
+            status: entry.status || 'waiting',
+            waitlistName: entry.waitlist?.name || 'General Waitlist'
+          };
+        }).filter(Boolean); // Remove null entries
         
         setWaitlistEntries(formattedEntries);
         console.log(`Successfully formatted ${formattedEntries.length} entries`);
@@ -250,23 +258,23 @@ export function useWaitlist() {
       // Use mock data if there's an error
       const formattedMockEntries = mockEntries.map((entry, index) => ({
         id: entry.entry_id,
-        name: entry.patient ? `${entry.patient.first_name} ${entry.patient.last_name}` : 'Unknown Patient',
-        email: entry.patient?.email || 'No email',
-        phone: entry.patient?.phone || 'No phone',
+        name: `${entry.patient.first_name} ${entry.patient.last_name}`,
+        email: entry.patient.email || 'No email',
+        phone: entry.patient.phone || 'No phone',
         photo: `https://i.pravatar.cc/150?u=${entry.patient_id}`,
-        condition: entry.patient?.preferences?.primaryCondition || 'Not specified',
-        insurance: entry.patient?.insurance_info?.provider || 'Not specified',
-        preferredTimes: entry.patient?.preferences?.preferredTimes || ['Any time'],
+        condition: entry.patient.preferences?.primaryCondition || 'General',
+        insurance: entry.patient.insurance_info?.provider || 'Self-pay',
+        preferredTimes: entry.patient.preferences?.preferredTimes || ['Flexible'],
         joinedDate: new Date(entry.created_at).toLocaleDateString(),
         position: index + 1,
-        matchScore: entry.priority_score || 50,
+        matchScore: entry.priority_score || 75,
         handRaised: entry.priority_score > 80,
         urgency: entry.priority_score > 85 ? 'high' : entry.priority_score > 70 ? 'medium' : 'low',
         lastContact: entry.updated_at ? new Date(entry.updated_at).toLocaleDateString() : null,
-        responseRate: 75 + Math.random() * 25,
-        provider: entry.provider ? `Dr. ${entry.provider.last_name}` : null,
+        responseRate: Math.floor(70 + Math.random() * 30),
+        provider: entry.provider ? `Dr. ${entry.provider.last_name}` : 'Unassigned',
         notes: entry.notes || '',
-        status: entry.status,
+        status: entry.status || 'waiting',
         waitlistName: entry.waitlist?.name || 'General Waitlist'
       }));
       setWaitlistEntries(formattedMockEntries);

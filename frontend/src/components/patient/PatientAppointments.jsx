@@ -1,7 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 const PatientAppointments = () => {
+  const navigate = useNavigate();
   const appointments = [
     {
       id: 1,
@@ -94,6 +96,7 @@ const PatientAppointments = () => {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           className="mt-6 w-full bg-blue-600 text-white rounded-xl py-3 font-medium hover:bg-blue-700 transition-colors"
+          onClick={() => navigate('/search')}
         >
           Book New Appointment
         </motion.button>

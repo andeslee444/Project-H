@@ -146,9 +146,9 @@ const ResyAvailabilityGrid: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b">
+      <div className="bg-white border-b flex-shrink-0">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div>
@@ -252,8 +252,10 @@ const ResyAvailabilityGrid: React.FC = () => {
         </div>
       </div>
 
-      {/* Week Navigation */}
-      <div className="max-w-7xl mx-auto px-4 py-4">
+      {/* Main Content - Scrollable Area */}
+      <div className="flex-1 overflow-y-auto bg-gray-50">
+        {/* Week Navigation */}
+        <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="bg-white rounded-lg shadow-sm p-4">
           <div className="flex justify-between items-center mb-4">
             <button
@@ -417,6 +419,7 @@ const ResyAvailabilityGrid: React.FC = () => {
             </div>
           </div>
         </div>
+      </div>
       </div>
 
       {/* Slot Detail Modal */}
