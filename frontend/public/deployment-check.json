@@ -1,11 +1,18 @@
 {
   "status": "deployed",
-  "version": "1.0.1",
-  "timestamp": "2025-01-12T00:00:00Z",
+  "version": "1.0.2",
+  "timestamp": "2025-01-15T00:00:00Z",
   "demoMode": true,
   "features": {
-    "waitlist": "mock-data",
+    "waitlist": "mock-data-with-orange-indicators",
     "database": "disabled",
-    "auth": "demo"
+    "auth": "demo",
+    "providerCards": "real-time-counts",
+    "fixes": [
+      "Duplicate patients resolved",
+      "Provider card counts fixed", 
+      "James Wilson shows 0 slots",
+      "Orange waitlist indicators"
+    ]
   }
 }

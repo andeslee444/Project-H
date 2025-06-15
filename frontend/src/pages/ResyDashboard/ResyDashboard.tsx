@@ -7,6 +7,7 @@ import {
   BarChart3, UserCheck, CalendarCheck, Home
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import TestTwilioButton from '../../components/dev/TestTwilioButton';
 
 interface QuickStat {
   label: string;
@@ -393,6 +394,11 @@ const ResyDashboard: React.FC = () => {
               })}
             </div>
           </div>
+        </div>
+
+        {/* Test Twilio Integration - Temporary */}
+        <div className="mt-6">
+          <TestTwilioButton />
         </div>
 
         {/* Navigation Cards */}

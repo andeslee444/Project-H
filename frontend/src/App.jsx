@@ -41,6 +41,7 @@ import ResyTeamDashboard from './components/resy/ResyTeamDashboard';
 import ResyInsightsDashboard from './components/resy/ResyInsightsDashboard';
 import ResyQuickControls from './components/resy/ResyQuickControls';
 import ResyMainDashboard from './pages/ResyDashboard/ResyDashboard';
+import AuthDebugger from './components/debug/AuthDebugger';
 
 import './App.css';
 
@@ -86,6 +87,7 @@ function App() {
           
           {/* Test page */}
           <Route path="/auth-test" element={<AuthTest />} />
+          <Route path="/auth-debug" element={<AuthDebugger />} />
           
           {/* Resy-inspired public routes */}
           <Route path="/" element={<ResyHomePage />} />

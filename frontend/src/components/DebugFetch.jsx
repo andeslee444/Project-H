@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import { getConfig } from '../config';
 
 export function DebugFetch() {
   const [debugInfo, setDebugInfo] = useState({});
-  const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.GITHUB_PAGES === 'true';
+  const isDemoMode = getConfig().auth.mode === 'demo';
   
   useEffect(() => {
     if (isDemoMode) {

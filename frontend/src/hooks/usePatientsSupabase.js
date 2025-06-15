@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase-no-rate-limit';
+import { getConfig } from '../config';
 
-// Check if we're in demo mode
-const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.GITHUB_PAGES === 'true';
+// Check if we're in demo mode using centralized configuration
+const isDemoMode = getConfig().auth.mode === 'demo';
 
 // Mock data for demo mode
 const mockPatients = [

@@ -21,7 +21,18 @@ export const detectEnvironment = (): Environment => {
 }
 
 export const isDemo = (environment: Environment): boolean => {
-  return environment === 'development' || environment === 'github-pages'
+  // Only use demo mode for GitHub Pages deployment
+  // In development, use real Supabase unless VITE_DEMO_MODE is explicitly set
+  if (environment === 'github-pages') {
+    return true
+  }
+  
+  // Check for explicit demo mode flag in development
+  if (environment === 'development' && import.meta.env.VITE_DEMO_MODE === 'true') {
+    return true
+  }
+  
+  return false
 }
 
 export const isProduction = (environment: Environment): boolean => {

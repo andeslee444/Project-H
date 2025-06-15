@@ -1,14 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
+import { getConfig } from '../config';
 
-// Check if we're in demo/GitHub Pages mode
-const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.GITHUB_PAGES === 'true';
+// Get configuration
+const config = getConfig();
+const isDemoMode = config.auth.mode === 'demo';
 
-const supabaseUrl = isDemoMode 
-  ? 'https://demo.supabase.co'
-  : 'https://qjsktpjgfwtgpnmsonrq.supabase.co';
-const supabaseAnonKey = isDemoMode
-  ? 'demo-key'
-  : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqc2t0cGpnZnd0Z3BubXNvbnJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkwNjYyODIsImV4cCI6MjA2NDY0MjI4Mn0.xROzs_OrgHhy97DbND7VcZzGcd9V_QS2G_Cu9DPDf3g';
+// Use environment variables for Supabase configuration
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://qjsktpjgfwtgpnmsonrq.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqc2t0cGpnZnd0Z3BubXNvbnJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkwNjYyODIsImV4cCI6MjA2NDY0MjI4Mn0.xROzs_OrgHhy97DbND7VcZzGcd9V_QS2G_Cu9DPDf3g';
 
 console.log('DEBUG: Creating Supabase client with:', { supabaseUrl });
 
@@ -36,9 +35,14 @@ const checkTables = async () => {
       .from('waitlist_entries')
       .select('*', { count: 'exact', head: true });
     
+    const { count: availabilityCount, error: availabilityError } = await supabase
+      .from('provider_availability')
+      .select('*', { count: 'exact', head: true });
+    
     console.log('DEBUG: Table check results:', {
       patients: { count: patientsCount, error: patientsError },
-      waitlist_entries: { count: waitlistEntriesCount, error: waitlistEntriesError }
+      waitlist_entries: { count: waitlistEntriesCount, error: waitlistEntriesError },
+      provider_availability: { count: availabilityCount, error: availabilityError }
     });
     
     if (patientsError?.message?.includes('relation') || waitlistEntriesError?.message?.includes('relation')) {

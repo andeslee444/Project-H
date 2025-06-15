@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase-no-rate-limit';
+import { getConfig } from '../config';
 
-// Check if we're in demo mode
-const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.GITHUB_PAGES === 'true';
+// Check if we're in demo mode using centralized configuration
+const isDemoMode = getConfig().auth.mode === 'demo';
 
 // Mock data for demo mode
 const mockProviders = [
@@ -83,6 +84,136 @@ const mockProviders = [
     bio: 'Board-certified psychiatrist with expertise in psychopharmacology...',
     waitlist_count: 25,
     next_available: 'Monday 10:00 AM'
+  },
+  {
+    provider_id: '4',
+    first_name: 'David',
+    last_name: 'Kim',
+    title: 'Licensed Therapist, LMFT',
+    email: 'david.kim@serenitymhc.com',
+    phone: '(415) 555-0104',
+    specialties: ['Trauma', 'PTSD', 'Grief Counseling', 'Life Transitions'],
+    modalities: ['EMDR', 'Somatic Therapy', 'Narrative Therapy'],
+    languages: ['English', 'Korean'],
+    insurance_accepted: ['Blue Cross Blue Shield', 'United Healthcare', 'Anthem'],
+    availability: {
+      today: ['4:00 PM', '5:30 PM'],
+      tomorrow: ['10:00 AM', '1:00 PM', '3:00 PM'],
+      thisWeek: 15
+    },
+    location: '321 5th Avenue, Suite 12, New York, NY 10001',
+    coordinates: { lat: 40.7478, lng: -73.9856 },
+    virtual_available: true,
+    in_person_available: true,
+    rating: 4.8,
+    reviews: 92,
+    bio: 'Specializing in trauma-informed care and healing approaches...',
+    waitlist_count: 10,
+    next_available: '4:00 PM Today'
+  },
+  {
+    provider_id: '5',
+    first_name: 'Jessica',
+    last_name: 'Thompson',
+    title: 'Clinical Social Worker, LCSW',
+    email: 'jessica.thompson@serenitymhc.com',
+    phone: '(415) 555-0105',
+    specialties: ['Adolescent Therapy', 'Teen Issues', 'School Problems', 'Behavioral Issues'],
+    modalities: ['Solution-Focused Therapy', 'Play Therapy', 'Art Therapy'],
+    languages: ['English', 'French'],
+    insurance_accepted: ['Aetna', 'Cigna', 'Humana', 'Medicare'],
+    availability: {
+      today: ['3:00 PM'],
+      tomorrow: ['2:00 PM', '4:00 PM', '5:00 PM'],
+      thisWeek: 9
+    },
+    location: '555 Lexington Ave, Floor 10, New York, NY 10022',
+    coordinates: { lat: 40.7568, lng: -73.9726 },
+    virtual_available: true,
+    in_person_available: false,
+    rating: 4.9,
+    reviews: 108,
+    bio: 'Expert in working with adolescents and families navigating teen challenges...',
+    waitlist_count: 14,
+    next_available: '3:00 PM Today'
+  },
+  {
+    provider_id: '6',
+    first_name: 'Robert',
+    last_name: 'Martinez',
+    title: 'Psychiatrist, MD',
+    email: 'robert.martinez@serenitymhc.com',
+    phone: '(415) 555-0106',
+    specialties: ['Addiction Medicine', 'Substance Abuse', 'Dual Diagnosis', 'Depression'],
+    modalities: ['Medication Management', 'Motivational Interviewing', 'Psychotherapy'],
+    languages: ['English', 'Spanish', 'Portuguese'],
+    insurance_accepted: ['Blue Cross Blue Shield', 'United Healthcare', 'Oxford'],
+    availability: {
+      today: [],
+      tomorrow: ['11:00 AM'],
+      thisWeek: 4
+    },
+    location: '890 7th Avenue, Suite 2400, New York, NY 10019',
+    coordinates: { lat: 40.7652, lng: -73.9816 },
+    virtual_available: true,
+    in_person_available: true,
+    rating: 4.7,
+    reviews: 134,
+    bio: 'Dual board-certified in psychiatry and addiction medicine...',
+    waitlist_count: 18,
+    next_available: '11:00 AM Tomorrow'
+  },
+  {
+    provider_id: '7',
+    first_name: 'Amanda',
+    last_name: 'Lee',
+    title: 'Psychologist, PhD',
+    email: 'amanda.lee@serenitymhc.com',
+    phone: '(415) 555-0107',
+    specialties: ['Eating Disorders', 'Body Image', 'Self-Esteem', 'Women\'s Issues'],
+    modalities: ['Acceptance and Commitment Therapy', 'Body-Positive Therapy'],
+    languages: ['English', 'Cantonese'],
+    insurance_accepted: ['Aetna', 'Cigna', 'Empire BCBS'],
+    availability: {
+      today: ['5:00 PM', '6:00 PM'],
+      tomorrow: ['9:00 AM', '10:00 AM', '2:00 PM'],
+      thisWeek: 11
+    },
+    location: '234 Hudson Street, Suite 304, New York, NY 10013',
+    coordinates: { lat: 40.7263, lng: -74.0080 },
+    virtual_available: true,
+    in_person_available: true,
+    rating: 4.9,
+    reviews: 87,
+    bio: 'Specializing in eating disorder recovery and body image healing...',
+    waitlist_count: 16,
+    next_available: '5:00 PM Today'
+  },
+  {
+    provider_id: '8',
+    first_name: 'James',
+    last_name: 'Wilson',
+    title: 'Licensed Counselor, LPC',
+    email: 'james.wilson@serenitymhc.com',
+    phone: '(415) 555-0108',
+    specialties: ['Men\'s Issues', 'Anger Management', 'Career Counseling', 'Stress'],
+    modalities: ['Cognitive Behavioral Therapy', 'Mindfulness-Based Stress Reduction'],
+    languages: ['English'],
+    insurance_accepted: ['United Healthcare', 'Oxford', 'Anthem', 'Tricare'],
+    availability: {
+      today: ['7:00 PM'],
+      tomorrow: ['12:00 PM', '6:00 PM', '7:00 PM'],
+      thisWeek: 8
+    },
+    location: '1001 Avenue of the Americas, Floor 15, New York, NY 10018',
+    coordinates: { lat: 40.7522, lng: -73.9867 },
+    virtual_available: true,
+    in_person_available: true,
+    rating: 4.6,
+    reviews: 72,
+    bio: 'Helping men navigate life challenges with practical strategies...',
+    waitlist_count: 6,
+    next_available: '7:00 PM Today'
   }
 ];
 
@@ -140,9 +271,9 @@ export function useProvidersSupabase() {
           name: `${provider.first_name} ${provider.last_name}`,
           insurance: provider.insurance_accepted || ['Blue Cross Blue Shield', 'Aetna'],
           availability: {
-            today: ['2:00 PM', '3:30 PM'], // Mock for now
-            tomorrow: ['9:00 AM', '11:00 AM'],
-            thisWeek: 10
+            today: provider.weekly_slots === 0 ? [] : ['2:00 PM', '3:30 PM'], // Mock for now
+            tomorrow: provider.weekly_slots === 0 ? [] : ['9:00 AM', '11:00 AM'],
+            thisWeek: provider.weekly_slots || 10
           },
           next_available: 'Today at 2:00 PM',
           rating: provider.rating || 4.8,

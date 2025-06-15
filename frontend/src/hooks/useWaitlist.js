@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { supabaseService } from '../services/supabaseService';
 import { supabaseServiceDebug } from '../services/supabaseService-debug';
+import { getConfig } from '../config';
 
-// Check if we're in demo mode (GitHub Pages)
-const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.GITHUB_PAGES === 'true';
+// Check if we're in demo mode using centralized configuration
+const isDemoMode = getConfig().auth.mode === 'demo';
 
 // Define mock data at module level - subset of patients from the full patient list
 const mockEntries = [
@@ -16,7 +17,7 @@ const mockEntries = [
       email: 'michael.brown@email.com',
       phone: '(415) 555-0105',
       preferences: {
-        primaryCondition: 'New patient consultation',
+        primaryCondition: 'Anxiety and stress management',
         preferredTimes: ['Flexible']
       },
       insurance_info: {
@@ -27,7 +28,7 @@ const mockEntries = [
     created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
     updated_at: new Date().toISOString(),
     status: 'waiting',
-    notes: 'New patient consultation'
+    notes: 'Anxiety and stress management'
   },
   {
     entry_id: '2',
@@ -38,7 +39,7 @@ const mockEntries = [
       email: 'sarah.wilson@email.com',
       phone: '(415) 555-0104',
       preferences: {
-        primaryCondition: 'Prefers morning appointments',
+        primaryCondition: 'Depression and mood management',
         preferredTimes: ['Flexible']
       },
       insurance_info: {
@@ -49,7 +50,7 @@ const mockEntries = [
     created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     updated_at: new Date().toISOString(),
     status: 'waiting',
-    notes: 'Prefers morning appointments'
+    notes: 'Depression and mood management'
   },
   {
     entry_id: '3',
@@ -82,7 +83,7 @@ const mockEntries = [
       email: 'jane.smith@email.com',
       phone: '(415) 555-0102',
       preferences: {
-        primaryCondition: 'New patient consultation',
+        primaryCondition: 'Couples therapy for relationship issues',
         preferredTimes: ['evening']
       },
       insurance_info: {
@@ -93,7 +94,7 @@ const mockEntries = [
     created_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
     updated_at: new Date().toISOString(),
     status: 'waiting',
-    notes: 'New patient consultation'
+    notes: 'Couples therapy for relationship issues'
   },
   {
     entry_id: '5',
@@ -104,7 +105,7 @@ const mockEntries = [
       email: 'emma.johnson@email.com',
       phone: '(415) 555-0107',
       preferences: {
-        primaryCondition: 'Flexible with scheduling',
+        primaryCondition: 'ADHD evaluation and treatment',
         preferredTimes: ['Flexible']
       },
       insurance_info: {
@@ -115,7 +116,7 @@ const mockEntries = [
     created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
     updated_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     status: 'waiting',
-    notes: 'Flexible with scheduling'
+    notes: 'ADHD evaluation and treatment'
   }
 ];
 
@@ -157,14 +158,17 @@ export function useWaitlist() {
             joinedDate: new Date(entry.created_at).toLocaleDateString(),
             position: index + 1,
             matchScore: entry.priority_score || 75,
-            handRaised: entry.priority_score > 80,
+            handRaised: entry.hand_raised || entry.priority_score > 80, // Use explicit field or fallback to score
             urgency: entry.priority_score > 85 ? 'high' : entry.priority_score > 70 ? 'medium' : 'low',
             lastContact: entry.updated_at ? new Date(entry.updated_at).toLocaleDateString() : null,
             responseRate: Math.floor(70 + Math.random() * 30),
             provider: entry.provider ? `Dr. ${entry.provider.last_name}` : 'Unassigned',
             notes: entry.notes || '',
             status: entry.status || 'waiting',
-            waitlistName: entry.waitlist?.name || 'General Waitlist'
+            waitlistName: entry.waitlist?.name || 'General Waitlist',
+            location: entry.patient.location || 'New York, NY',
+            distance: Math.floor(Math.random() * 30) + 1,
+            excluded: entry.status === 'excluded'
           }));
           setWaitlistEntries(formattedEntries);
         }
@@ -212,36 +216,58 @@ export function useWaitlist() {
       
       if (dataToUse) {
         // Transform the data to match the frontend format
-        const formattedEntries = dataToUse.map((entry, index) => {
+        // Create a map to track unique patients
+        const uniquePatients = new Map();
+        
+        dataToUse.forEach((entry) => {
           // Skip entries without patient data
           if (!entry.patient) {
             console.warn(`Waitlist entry ${entry.entry_id} has no patient data`);
-            return null;
+            return;
           }
           
+          const patientId = entry.patient_id;
+          
+          // If we haven't seen this patient yet, or if this entry has higher priority, use it
+          if (!uniquePatients.has(patientId) || 
+              (entry.priority_score || 0) > (uniquePatients.get(patientId).priority_score || 0)) {
+            uniquePatients.set(patientId, entry);
+          }
+        });
+        
+        // Convert unique patients map to array and format
+        const formattedEntries = Array.from(uniquePatients.values()).map((entry, index) => {
           return {
-            id: entry.entry_id,
+            id: entry.patient_id, // Use patient_id as unique identifier
             name: `${entry.patient.first_name} ${entry.patient.last_name}`,
             email: entry.patient.email || 'No email',
             phone: entry.patient.phone || 'No phone',
             photo: entry.patient.photo || `https://i.pravatar.cc/150?u=${entry.patient_id}`,
-            // Use primaryCondition from preferences, fallback to notes
-            condition: entry.patient.preferences?.primaryCondition || entry.notes || 'General',
+            // Handle multiple diagnoses and standardized insurance format
+            condition: Array.isArray(entry.patient.diagnosis) && entry.patient.diagnosis.length > 0 
+              ? entry.patient.diagnosis[0] // Use primary diagnosis for display
+              : entry.notes || 'General mental health',
+            allDiagnoses: entry.patient.diagnosis || [], // Pass full array for matching
             insurance: entry.patient.insurance_info?.provider || 'Self-pay',
-            preferredTimes: entry.patient.preferences?.preferredTimes || ['Flexible'],
+            preferredTimes: entry.patient.preferred_days || entry.patient.preferences?.preferredTimes || ['Flexible'],
             joinedDate: new Date(entry.created_at).toLocaleDateString(),
             position: index + 1,
             matchScore: entry.priority_score || 75,
-            handRaised: entry.priority_score > 80,
+            handRaised: entry.hand_raised || entry.priority_score > 80, // Use explicit field or fallback to score
             urgency: entry.priority_score > 85 ? 'high' : entry.priority_score > 70 ? 'medium' : 'low',
             lastContact: entry.updated_at ? new Date(entry.updated_at).toLocaleDateString() : null,
             responseRate: Math.floor(70 + Math.random() * 30), // Mock for now
             provider: entry.provider ? `Dr. ${entry.provider.last_name}` : 'Unassigned',
             notes: entry.notes || '',
             status: entry.status || 'waiting',
-            waitlistName: entry.waitlist?.name || 'General Waitlist'
+            waitlistName: entry.waitlist?.name || 'General Waitlist',
+            location: entry.patient.location || entry.patient.address?.city || 'New York, NY',
+            distance: Math.floor(Math.random() * 30) + 1, // TODO: Calculate real distance
+            excluded: entry.status === 'excluded',
+            preferredModality: entry.patient.preferred_modality || entry.patient.preferences?.modality || 'either',
+            preferredGender: entry.patient.preferred_gender || entry.patient.preferences?.gender || 'no preference'
           };
-        }).filter(Boolean); // Remove null entries
+        });
         
         setWaitlistEntries(formattedEntries);
         console.log(`Successfully formatted ${formattedEntries.length} entries`);
@@ -262,8 +288,8 @@ export function useWaitlist() {
         email: entry.patient.email || 'No email',
         phone: entry.patient.phone || 'No phone',
         photo: `https://i.pravatar.cc/150?u=${entry.patient_id}`,
-        condition: entry.patient.preferences?.primaryCondition || 'General',
-        insurance: entry.patient.insurance_info?.provider || 'Self-pay',
+        condition: entry.patient.diagnosis || 'General mental health',
+        insurance: entry.patient.insurance_provider || 'Self-pay',
         preferredTimes: entry.patient.preferences?.preferredTimes || ['Flexible'],
         joinedDate: new Date(entry.created_at).toLocaleDateString(),
         position: index + 1,
@@ -275,7 +301,12 @@ export function useWaitlist() {
         provider: entry.provider ? `Dr. ${entry.provider.last_name}` : 'Unassigned',
         notes: entry.notes || '',
         status: entry.status || 'waiting',
-        waitlistName: entry.waitlist?.name || 'General Waitlist'
+        waitlistName: entry.waitlist?.name || 'General Waitlist',
+        location: entry.patient.location || 'New York, NY',
+        distance: Math.floor(Math.random() * 30) + 1,
+        excluded: entry.status === 'excluded',
+        preferredModality: entry.patient.preferred_modality || 'either',
+        preferredGender: entry.patient.preferred_gender || 'no preference'
       }));
       setWaitlistEntries(formattedMockEntries);
       console.log('Using mock data due to error:', err.message);

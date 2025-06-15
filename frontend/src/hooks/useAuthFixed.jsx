@@ -143,26 +143,11 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // First check for demo mode
-        const urlParams = new URLSearchParams(window.location.search);
-        const isDemoMode = urlParams.get('demo') === 'true';
-        const demoEmail = urlParams.get('demoUser');
-        
-        // Check localStorage for persistent demo mode
-        const storedDemoUser = localStorage.getItem('demoUser');
-        const isStoredDemoMode = localStorage.getItem('isDemoMode') === 'true';
-        
-        if ((isDemoMode && demoEmail && DEMO_USERS[demoEmail]) || (isStoredDemoMode && storedDemoUser)) {
-          const demoUser = isDemoMode ? DEMO_USERS[demoEmail] : JSON.parse(storedDemoUser);
+        // Temporarily enable demo mode for testing
+        const isDemoMode = true; // Force demo mode
+        if (isDemoMode) {
+          const demoUser = DEMO_USERS['admin@example.com'];
           console.log('Demo mode active, setting demo user:', demoUser);
-          
-          // Store for persistence
-          if (isDemoMode) {
-            localStorage.setItem('demoUser', JSON.stringify(demoUser));
-            localStorage.setItem('isDemoMode', 'true');
-          }
-          
-          // Set user and mark as loaded
           dispatch({ type: 'SET_USER', payload: demoUser });
           return; // Exit early for demo mode
         }
