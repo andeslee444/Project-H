@@ -17,3 +17,9 @@ coverage/
 
 # Temporary files
 .trash/
+
+# Build output
+dist/
+
+# Node modules
+node_modules/

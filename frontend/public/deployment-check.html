@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deployment Check - Project H</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; }
+        .status { 
+            padding: 10px; 
+            border-radius: 4px; 
+            margin: 10px 0;
+            font-family: monospace;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        .warning { background: #fff3cd; color: #856404; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Project H - Deployment Check</h1>
+        <p>This page helps verify the GitHub Pages deployment configuration.</p>
+    </div>
+
+    <div class="card">
+        <h2>Environment Variables</h2>
+        <div id="env-vars" class="status info">Checking...</div>
+    </div>
+
+    <div class="card">
+        <h2>Location Info</h2>
+        <div id="location-info" class="status info">Checking...</div>
+    </div>
+
+    <div class="card">
+        <h2>Build Configuration</h2>
+        <div id="build-config" class="status info">Checking...</div>
+    </div>
+
+    <div class="card">
+        <h2>Demo Mode Status</h2>
+        <div id="demo-status" class="status info">Checking...</div>
+    </div>
+
+    <script type="module">
+        // Check environment variables
+        const envVars = {
+            hostname: window.location.hostname,
+            pathname: window.location.pathname,
+            isGitHubPages: window.location.hostname.includes('github.io'),
+            viteDemoMode: typeof import.meta !== 'undefined' ? import.meta.env?.VITE_DEMO_MODE : 'undefined',
+            githubPages: typeof import.meta !== 'undefined' ? import.meta.env?.GITHUB_PAGES : 'undefined',
+            nodeEnv: typeof import.meta !== 'undefined' ? import.meta.env?.NODE_ENV : 'undefined',
+            mode: typeof import.meta !== 'undefined' ? import.meta.env?.MODE : 'undefined'
+        };
+
+        document.getElementById('env-vars').innerHTML = `
+            <pre>${JSON.stringify(envVars, null, 2)}</pre>
+        `;
+        document.getElementById('env-vars').className = 'status info';
+
+        // Location info
+        document.getElementById('location-info').innerHTML = `
+            <div>Full URL: ${window.location.href}</div>
+            <div>Origin: ${window.location.origin}</div>
+            <div>Hostname: ${window.location.hostname}</div>
+            <div>Pathname: ${window.location.pathname}</div>
+            <div>Protocol: ${window.location.protocol}</div>
+        `;
+
+        // Build config
+        const buildConfig = {
+            basePath: document.querySelector('base')?.href || 'No base tag found',
+            scripts: Array.from(document.querySelectorAll('script')).map(s => s.src || 'inline').filter(s => s !== 'inline'),
+            isProduction: typeof import.meta !== 'undefined' && import.meta.env?.MODE === 'production'
+        };
+        
+        document.getElementById('build-config').innerHTML = `
+            <pre>${JSON.stringify(buildConfig, null, 2)}</pre>
+        `;
+
+        // Demo mode detection
+        const demoChecks = {
+            isGitHubPagesByHostname: window.location.hostname.includes('github.io'),
+            viteDemoModeFlag: typeof import.meta !== 'undefined' && import.meta.env?.VITE_DEMO_MODE === 'true',
+            githubPagesFlag: typeof import.meta !== 'undefined' && import.meta.env?.GITHUB_PAGES === 'true',
+            shouldUseDemoMode: false
+        };
+        
+        demoChecks.shouldUseDemoMode = demoChecks.isGitHubPagesByHostname || 
+                                       demoChecks.viteDemoModeFlag || 
+                                       demoChecks.githubPagesFlag;
+
+        document.getElementById('demo-status').innerHTML = `
+            <pre>${JSON.stringify(demoChecks, null, 2)}</pre>
+        `;
+        document.getElementById('demo-status').className = demoChecks.shouldUseDemoMode ? 'status success' : 'status warning';
+
+        // Add navigation button
+        const nav = document.createElement('div');
+        nav.className = 'card';
+        nav.innerHTML = `
+            <h2>Navigation</h2>
+            <p>Demo mode is ${demoChecks.shouldUseDemoMode ? 'ENABLED' : 'DISABLED'}</p>
+            <a href="${window.location.origin}${window.location.pathname.replace('deployment-check.html', '')}" 
+               style="display: inline-block; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 4px;">
+                Go to App →
+            </a>
+        `;
+        document.body.appendChild(nav);
+    </script>
+</body>
+</html>

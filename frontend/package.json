@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "prebuild:github": "node scripts/prebuild-github-pages.js",
+    "build:github": "npm run prebuild:github && vite build",
     "build:analyze": "ANALYZE=true tsc && vite build",
     "build:cdn": "USE_CDN=true tsc && vite build",
     "build:sourcemap": "SOURCE_MAP=true tsc && vite build",

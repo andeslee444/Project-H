@@ -41,9 +41,11 @@ jobs:
         VITE_DEMO_MODE: true
       run: |
         echo "Building with NODE_ENV=$NODE_ENV, GITHUB_PAGES=$GITHUB_PAGES, VITE_DEMO_MODE=$VITE_DEMO_MODE"
-        npm run build
+        npm run build:github
         echo "Build completed. Contents of dist:"
         ls -la dist/
+        # Copy deployment check file
+        cp public/deployment-check.html dist/
       
     - name: Setup Pages
       uses: actions/configure-pages@v4
