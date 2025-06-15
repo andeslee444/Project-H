@@ -31,9 +31,7 @@
     "lint": "eslint scenarios/ scripts/ utils/ --fix",
     "validate": "node scripts/validate-test-config.js"
   },
-  "dependencies": {
-    "k6": "^0.47.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "eslint": "^8.0.0",
     "eslint-config-standard": "^17.0.0",
