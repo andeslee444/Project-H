@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase-no-rate-limit';
 import { getConfig } from '../config';
 
 // Check if we're in demo mode using centralized configuration
-const isDemoMode = getConfig().auth.mode === 'demo';
+// TEMPORARILY DISABLED: Force production mode to test new provider data
+const isDemoMode = false; // getConfig().auth.mode === 'demo';
 
 // Mock data for demo mode
 const mockProviders = [
@@ -217,13 +218,104 @@ const mockProviders = [
   }
 ];
 
+// Helper function to transform provider data from database to frontend format
+const transformProvider = (provider) => ({
+  ...provider,
+  // Add computed fields
+  name: `${provider.first_name} ${provider.last_name}`,
+  insurance: provider.insurance_accepted || ['Blue Cross Blue Shield', 'Aetna'],
+  availability: {
+    today: provider.weekly_slots === 0 ? [] : ['2:00 PM', '3:30 PM'], // Mock for now
+    tomorrow: provider.weekly_slots === 0 ? [] : ['9:00 AM', '11:00 AM'],
+    thisWeek: provider.weekly_slots || 10
+  },
+  next_available: 'Today at 2:00 PM',
+  rating: provider.rating || 4.8,
+  reviews: provider.review_count || 50,
+  waitlist_count: provider.waitlist_count || 5,
+  bio: provider.bio || `${provider.title} specializing in mental health care.`
+});
+
 export function useProvidersSupabase() {
   const [providers, setProviders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [connectionStatus, setConnectionStatus] = useState('connecting');
+  const subscriptionRef = useRef(null);
 
   useEffect(() => {
     fetchProviders();
+    
+    // Set up real-time subscription if not in demo mode
+    if (!isDemoMode) {
+      console.log('Setting up real-time subscription for providers...');
+      
+      // Subscribe to providers table changes
+      const subscription = supabase
+        .channel('providers_changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+            schema: 'public',
+            table: 'providers'
+          },
+          (payload) => {
+            console.log('Provider change detected:', payload.eventType);
+            
+            // Handle different event types
+            switch (payload.eventType) {
+              case 'INSERT':
+                console.log('New provider added:', payload.new);
+                // Transform and add the new provider to the list
+                const newProvider = transformProvider(payload.new);
+                setProviders(prev => [...prev, newProvider]);
+                break;
+                
+              case 'UPDATE':
+                console.log('Provider updated:', payload.new);
+                // Transform and update the provider in the list
+                const updatedProvider = transformProvider(payload.new);
+                setProviders(prev => prev.map(provider => 
+                  provider.provider_id === updatedProvider.provider_id ? updatedProvider : provider
+                ));
+                break;
+                
+              case 'DELETE':
+                console.log('Provider deleted:', payload.old);
+                // Remove the provider from the list
+                setProviders(prev => prev.filter(provider => 
+                  provider.provider_id !== payload.old.provider_id
+                ));
+                break;
+            }
+          }
+        )
+        .on('system', { event: 'error' }, (payload) => {
+          console.error('Subscription error:', payload);
+          setConnectionStatus('error');
+        })
+        .on('system', { event: 'connected' }, () => {
+          console.log('Real-time subscription connected');
+          setConnectionStatus('connected');
+        })
+        .subscribe((status) => {
+          console.log('Subscription status:', status);
+          if (status === 'SUBSCRIBED') {
+            setConnectionStatus('connected');
+          }
+        });
+      
+      subscriptionRef.current = subscription;
+      
+      // Cleanup function
+      return () => {
+        console.log('Cleaning up providers subscription');
+        if (subscriptionRef.current) {
+          supabase.removeChannel(subscriptionRef.current);
+        }
+      };
+    }
   }, []);
 
   const fetchProviders = async () => {
@@ -265,23 +357,7 @@ export function useProvidersSupabase() {
 
       if (data && data.length > 0) {
         // Transform database data to match frontend format
-        const transformedProviders = data.map(provider => ({
-          ...provider,
-          // Add computed fields
-          name: `${provider.first_name} ${provider.last_name}`,
-          insurance: provider.insurance_accepted || ['Blue Cross Blue Shield', 'Aetna'],
-          availability: {
-            today: provider.weekly_slots === 0 ? [] : ['2:00 PM', '3:30 PM'], // Mock for now
-            tomorrow: provider.weekly_slots === 0 ? [] : ['9:00 AM', '11:00 AM'],
-            thisWeek: provider.weekly_slots || 10
-          },
-          next_available: 'Today at 2:00 PM',
-          rating: provider.rating || 4.8,
-          reviews: provider.review_count || 50,
-          waitlist_count: provider.waitlist_count || 5,
-          bio: provider.bio || `${provider.title} specializing in mental health care.`
-        }));
-        
+        const transformedProviders = data.map(transformProvider);
         setProviders(transformedProviders);
       } else {
         // Fallback to mock data if no providers in database
@@ -344,6 +420,7 @@ export function useProvidersSupabase() {
     providers,
     loading,
     error,
+    connectionStatus,
     refreshProviders: fetchProviders,
     searchProviders,
     filterProviders

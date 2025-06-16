@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './Settings.css';
+import TestTwilioButton from '../../components/dev/TestTwilioButton';
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('practice');
@@ -552,6 +553,12 @@ const Settings = () => {
                   </button>
                 </div>
               </form>
+              
+              {/* SMS Testing Section */}
+              <div className="mt-8 border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4">SMS Integration Testing</h3>
+                <TestTwilioButton />
+              </div>
             </div>
           )}
           

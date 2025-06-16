@@ -55,11 +55,16 @@ class TwilioService {
       }
 
       // In production, call Supabase Edge Function
+      console.log('Sending SMS via Supabase Edge Function');
+      console.log('URL:', `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-sms`);
+      console.log('Params:', params);
+      
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-sms`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
         },
         body: JSON.stringify({
           action: 'send_single',
@@ -72,11 +77,14 @@ class TwilioService {
       });
 
       const result = await response.json();
+      console.log('SMS Response:', { status: response.status, result });
       
       if (!response.ok) {
+        console.error('SMS Failed:', result);
         throw new Error(result.error || 'Failed to send SMS');
       }
 
+      console.log('SMS sent successfully');
       return { success: true };
 
     } catch (error) {

@@ -115,7 +115,7 @@ const TestTwilioButton: React.FC = () => {
         {testStatus === 'success' && !isMockMode && (
           <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
             <p className="text-sm text-green-700">
-              Check your phone! The message was sent from (833) 820-5947.
+              Check your phone! The message was sent from (425) 533-6828.
             </p>
           </div>
         )}
@@ -136,7 +136,7 @@ const TestTwilioButton: React.FC = () => {
           </div>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-green-500" />
-            <span className="text-gray-600">Twilio Number: (833) 820-5947</span>
+            <span className="text-gray-600">Twilio Number: (425) 533-6828</span>
           </div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase-no-rate-limit';
 import { getConfig } from '../config';
 
@@ -94,9 +94,80 @@ export function usePatientsSupabase() {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [connectionStatus, setConnectionStatus] = useState('connecting');
+  const subscriptionRef = useRef(null);
 
   useEffect(() => {
     fetchPatients();
+    
+    // Set up real-time subscription if not in demo mode
+    if (!isDemoMode) {
+      console.log('Setting up real-time subscription for patients...');
+      
+      // Subscribe to patients table changes
+      const subscription = supabase
+        .channel('patients_changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+            schema: 'public',
+            table: 'patients'
+          },
+          (payload) => {
+            console.log('Patient change detected:', payload.eventType);
+            
+            // Handle different event types
+            switch (payload.eventType) {
+              case 'INSERT':
+                console.log('New patient added:', payload.new);
+                // Add the new patient to the list
+                setPatients(prev => [...prev, payload.new]);
+                break;
+                
+              case 'UPDATE':
+                console.log('Patient updated:', payload.new);
+                // Update the patient in the list
+                setPatients(prev => prev.map(patient => 
+                  patient.patient_id === payload.new.patient_id ? payload.new : patient
+                ));
+                break;
+                
+              case 'DELETE':
+                console.log('Patient deleted:', payload.old);
+                // Remove the patient from the list
+                setPatients(prev => prev.filter(patient => 
+                  patient.patient_id !== payload.old.patient_id
+                ));
+                break;
+            }
+          }
+        )
+        .on('system', { event: 'error' }, (payload) => {
+          console.error('Subscription error:', payload);
+          setConnectionStatus('error');
+        })
+        .on('system', { event: 'connected' }, () => {
+          console.log('Real-time subscription connected');
+          setConnectionStatus('connected');
+        })
+        .subscribe((status) => {
+          console.log('Subscription status:', status);
+          if (status === 'SUBSCRIBED') {
+            setConnectionStatus('connected');
+          }
+        });
+      
+      subscriptionRef.current = subscription;
+      
+      // Cleanup function
+      return () => {
+        console.log('Cleaning up patients subscription');
+        if (subscriptionRef.current) {
+          supabase.removeChannel(subscriptionRef.current);
+        }
+      };
+    }
   }, []);
 
   const fetchPatients = async () => {
@@ -225,6 +296,7 @@ export function usePatientsSupabase() {
     patients,
     loading,
     error,
+    connectionStatus,
     refreshPatients: fetchPatients,
     searchPatients,
     filterPatients,

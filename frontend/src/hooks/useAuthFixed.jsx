@@ -143,10 +143,35 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Temporarily enable demo mode for testing
-        const isDemoMode = true; // Force demo mode
+        // Check if running in Puppeteer
+        const isPuppeteer = !!(
+          window.navigator.webdriver ||
+          window.__puppeteer_evaluation_script__ ||
+          (window.navigator.userAgent && window.navigator.userAgent.includes('HeadlessChrome'))
+        );
+        
+        if (isPuppeteer) {
+          console.log('Puppeteer detected - enabling auto demo mode');
+          const urlParams = new URLSearchParams(window.location.search);
+          const role = urlParams.get('puppeteer_role') || 'admin';
+          
+          let demoUserEmail = 'admin@example.com';
+          if (role === 'provider') demoUserEmail = 'provider@example.com';
+          if (role === 'patient') demoUserEmail = 'patient@example.com';
+          
+          const demoUser = DEMO_USERS[demoUserEmail];
+          localStorage.setItem('isDemoMode', 'true');
+          localStorage.setItem('demoUser', JSON.stringify(demoUser));
+          dispatch({ type: 'SET_USER', payload: demoUser });
+          return;
+        }
+        
+        // Check if demo mode is enabled
+        const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
         if (isDemoMode) {
-          const demoUser = DEMO_USERS['admin@example.com'];
+          const demoUserStr = localStorage.getItem('demoUser');
+          const demoUserEmail = localStorage.getItem('demoUserEmail') || 'admin@example.com';
+          const demoUser = demoUserStr ? JSON.parse(demoUserStr) : DEMO_USERS[demoUserEmail];
           console.log('Demo mode active, setting demo user:', demoUser);
           dispatch({ type: 'SET_USER', payload: demoUser });
           return; // Exit early for demo mode

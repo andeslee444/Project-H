@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Real Supabase Auth</title>
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+        
+        const supabaseUrl = 'https://qjsktpjgfwtgpnmsonrq.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqc2t0cGpnZnd0Z3BubXNvbnJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkwNjYyODIsImV4cCI6MjA2NDY0MjI4Mn0.xROzs_OrgHhy97DbND7VcZzGcd9V_QS2G_Cu9DPDf3g';
+        
+        const supabase = createClient(supabaseUrl, supabaseAnonKey);
+        
+        // Create test admin user
+        async function setupTestUser() {
+            const email = 'testadmin@projecth.com';
+            const password = 'TestPass123!';
+            
+            console.log('Setting up test user...');
+            
+            // Try to sign up first
+            const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: {
+                        role: 'admin',
+                        first_name: 'Test',
+                        last_name: 'Admin'
+                    }
+                }
+            });
+            
+            if (signUpError && signUpError.message.includes('already registered')) {
+                console.log('User already exists, trying to sign in...');
+                
+                // Try to sign in
+                const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+                    email,
+                    password
+                });
+                
+                if (signInError) {
+                    console.error('Sign in failed:', signInError);
+                    document.getElementById('result').innerHTML = `
+                        <p style="color: red;">Sign in failed: ${signInError.message}</p>
+                        <p>The user exists but the password might be different.</p>
+                    `;
+                } else if (signInData?.user) {
+                    console.log('Sign in successful!', signInData.user);
+                    document.getElementById('result').innerHTML = `
+                        <p style="color: green;">✅ Successfully signed in!</p>
+                        <p>Email: ${signInData.user.email}</p>
+                        <p>Role: ${signInData.user.user_metadata?.role || 'Not set'}</p>
+                        <p>You can now go back to the app and it should load real data.</p>
+                        <button onclick="window.location.href='http://localhost:3000/patients'">Go to Patients Page</button>
+                    `;
+                    
+                    // Store session token
+                    localStorage.setItem('supabase.auth.token', JSON.stringify(signInData.session));
+                }
+            } else if (signUpData?.user) {
+                console.log('User created successfully!', signUpData.user);
+                document.getElementById('result').innerHTML = `
+                    <p style="color: green;">✅ User created successfully!</p>
+                    <p>Email: ${email}</p>
+                    <p>Password: ${password}</p>
+                    <p>Please check your email to confirm your account, then sign in.</p>
+                `;
+            } else if (signUpError) {
+                console.error('Sign up failed:', signUpError);
+                document.getElementById('result').innerHTML = `
+                    <p style="color: red;">Sign up failed: ${signUpError.message}</p>
+                `;
+            }
+        }
+        
+        window.setupTestUser = setupTestUser;
+        window.supabase = supabase;
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f3f4f6;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Real Supabase Authentication</h1>
+    <p>This page will help set up a test user for real Supabase authentication.</p>
+    
+    <button onclick="setupTestUser()">Create/Login Test Admin User</button>
+    
+    <div id="result"></div>
+    
+    <hr style="margin: 40px 0;">
+    
+    <h2>Manual Testing</h2>
+    <p>You can also use the browser console with these commands:</p>
+    <pre style="background: #f3f4f6; padding: 10px; border-radius: 5px;">
+// Check current auth status
+const { data: { user } } = await supabase.auth.getUser();
+console.log('Current user:', user);
+
+// Sign in manually
+const { data, error } = await supabase.auth.signInWithPassword({
+    email: 'your-email@example.com',
+    password: 'your-password'
+});
+    </pre>
+</body>
+</html>

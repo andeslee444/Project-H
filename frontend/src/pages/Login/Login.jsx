@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuthFixed';
+import { usePuppeteerAuth } from '../../hooks/usePuppeteerAuth';
 import './Login.css';
 
 const Login = () => {
@@ -12,6 +13,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const auth = useAuth();
+  const isPuppeteerSession = usePuppeteerAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();

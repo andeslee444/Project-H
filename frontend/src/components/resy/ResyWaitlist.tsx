@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Users, Send, Filter, AlertCircle, Clock, MessageSquare,
   TrendingUp, CheckCircle, X, ChevronRight, User, Star,
-  Bell, Search, HandMetal, Ban, Timer, Zap, ChevronDown, Loader2,
+  Bell, Search, Ban, Timer, Zap, ChevronDown, Loader2,
   MapPin, Shield, Stethoscope, ChevronLeft, Calendar, Phone, Mail, Info
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -99,7 +99,25 @@ const ResyWaitlist: React.FC = () => {
   const [hoveredProviderId, setHoveredProviderId] = useState<string | null>(null);
   const [providerWaitlistMap, setProviderWaitlistMap] = useState<Map<string, Set<string>>>(new Map());
   const [expandedProviderId, setExpandedProviderId] = useState<string | null>(null);
+  const [expandedSpecialties, setExpandedSpecialties] = useState<Set<string>>(new Set());
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
   const carouselRef = React.useRef<HTMLDivElement>(null);
+
+  // TimeSlot interface matching ProviderAvailability
+  interface TimeSlot {
+    id: string;
+    provider_id: string;
+    date: string;
+    start_time: string;
+    end_time: string;
+    is_available: boolean;
+    is_booked: boolean;
+    appointment_type: 'in-person' | 'virtual' | 'both';
+    patient_id?: string | null;
+    notes?: string | null;
+    created_at?: string;
+    updated_at?: string;
+  }
 
   // Process provider data with stable values from Supabase
   const providers: Provider[] = supabaseProviders.map(p => ({
@@ -118,6 +136,14 @@ const ResyWaitlist: React.FC = () => {
 
   // The waitlistEntries are already transformed by the hook
   const waitlistPatients: WaitlistPatient[] = waitlistEntries;
+  
+  // Debug: Log all patients and their provider assignments
+  useEffect(() => {
+    console.log('All waitlist patients:');
+    waitlistPatients.forEach(patient => {
+      console.log(`- ${patient.name}: provider="${patient.provider}", excluded=${patient.excluded}`);
+    });
+  }, [waitlistPatients]);
 
   // Build provider-patient mapping from waitlist entries
   useEffect(() => {
@@ -128,16 +154,28 @@ const ResyWaitlist: React.FC = () => {
         const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/waitlists?select=provider_id,waitlist_entries(patient_id,hand_raised)`, {
           headers: {
             'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json'
           }
         });
+        
+        console.log('Waitlist response status:', response.status);
         
         if (response.ok) {
           const data = await response.json();
           const providerMap = new Map<string, Set<string>>();
           
           // Process waitlists and their entries
+          console.log('Waitlists data from Supabase:', data);
+          console.log('Number of waitlists returned:', data.length);
+          
           data.forEach(waitlist => {
+            console.log('Processing waitlist:', { 
+              provider_id: waitlist.provider_id, 
+              entries_count: waitlist.waitlist_entries?.length || 0,
+              entries: waitlist.waitlist_entries 
+            });
+            
             if (waitlist.provider_id && waitlist.waitlist_entries) {
               const providerId = waitlist.provider_id;
               if (!providerMap.has(providerId)) {
@@ -147,8 +185,10 @@ const ResyWaitlist: React.FC = () => {
               waitlist.waitlist_entries.forEach(entry => {
                 if (entry.patient_id) {
                   providerMap.get(providerId)?.add(entry.patient_id);
+                  console.log(`Added patient ${entry.patient_id} to provider ${providerId}`);
                 }
               });
+              console.log(`Provider ${providerId} has ${waitlist.waitlist_entries.length} patients`);
             }
           });
           
@@ -165,7 +205,7 @@ const ResyWaitlist: React.FC = () => {
   }, []);
 
   // Filter patients based on selected provider and filters
-  const filteredPatients = waitlistPatients.filter(patient => {
+  const filteredAndSortedPatients = waitlistPatients.filter(patient => {
     if (patient.excluded) return false;
 
     // Search filter
@@ -187,7 +227,7 @@ const ResyWaitlist: React.FC = () => {
 
     // Provider-specific filtering
     if (selectedProvider) {
-      // Check if patient is on this provider's waitlist
+      // Check if patient is on this provider's waitlist - same logic as the count
       const isOnProviderWaitlist = patient.provider && patient.provider.includes(selectedProvider.last_name);
       
       // Also check matching criteria for additional context
@@ -208,13 +248,26 @@ const ResyWaitlist: React.FC = () => {
         }
       );
       
-      // Show patient if they're on this provider's waitlist OR if they match the provider criteria
+      // Show patients who are on this provider's waitlist OR match the provider criteria
       if (!isOnProviderWaitlist && !matchResult.matches) {
         return false;
       }
     }
 
     return true;
+  }).sort((a, b) => {
+    // If a provider is selected, prioritize waitlisted patients
+    if (selectedProvider) {
+      const aIsWaitlisted = a.provider && a.provider.includes(selectedProvider.last_name);
+      const bIsWaitlisted = b.provider && b.provider.includes(selectedProvider.last_name);
+      
+      if (aIsWaitlisted && !bIsWaitlisted) return -1;
+      if (!aIsWaitlisted && bIsWaitlisted) return 1;
+    }
+    
+    // Secondary sort by urgency
+    const urgencyOrder = { high: 0, medium: 1, low: 2 };
+    return urgencyOrder[a.urgency] - urgencyOrder[b.urgency];
   });
 
   // Get unique values for filters
@@ -222,12 +275,15 @@ const ResyWaitlist: React.FC = () => {
   const uniqueInsurances = [...new Set(waitlistPatients.map(p => p.insurance))];
 
   const handleProviderCardClick = (provider: Provider) => {
-    // Toggle availability expansion instead of selecting provider
-    if (expandedProviderId === provider.provider_id) {
+    // Toggle provider selection
+    if (selectedProvider?.provider_id === provider.provider_id) {
+      // If clicking the same provider, unselect it
+      setSelectedProvider(null);
       setExpandedProviderId(null);
     } else {
-      setExpandedProviderId(provider.provider_id);
+      // Select new provider
       setSelectedProvider(provider);
+      setExpandedProviderId(provider.provider_id);
     }
   };
 
@@ -256,7 +312,7 @@ const ResyWaitlist: React.FC = () => {
       // Shift-click: select range
       const start = Math.min(lastSelectedIndex, index);
       const end = Math.max(lastSelectedIndex, index);
-      const patientIdsInRange = filteredPatients
+      const patientIdsInRange = filteredAndSortedPatients
         .slice(start, end + 1)
         .map(p => p.id);
       
@@ -338,20 +394,57 @@ const ResyWaitlist: React.FC = () => {
             >
               <div className="flex gap-4 pb-2">
               {providers.map((provider) => {
-                // Get actual waitlist count from the map
-                const providerPatients = providerWaitlistMap.get(provider.provider_id);
-                
                 // Count patients actually on this provider's waitlist
-                // Look for patients where provider matches this provider's name
                 const patientsOnWaitlist = waitlistPatients.filter(patient => {
                   if (patient.excluded) return false;
-                  // Check if patient's provider field matches this provider
-                  const providerLastName = provider.last_name;
-                  return patient.provider && patient.provider.includes(providerLastName);
+                  const isOnProviderWaitlist = patient.provider && patient.provider.includes(provider.last_name);
+                  return isOnProviderWaitlist;
                 });
                 
-                // Use the actual count from filtered patients
+                // Count ALL patients that match (waitlisted + matches)
+                const allMatchingPatients = waitlistPatients.filter(patient => {
+                  if (patient.excluded) return false;
+                  
+                  const isOnProviderWaitlist = patient.provider && patient.provider.includes(provider.last_name);
+                  
+                  const matchResult = calculateProviderPatientMatch(
+                    {
+                      specialties: provider.specialties || [],
+                      insurance_accepted: provider.insurance_accepted || [],
+                      location: provider.location,
+                      virtual_available: provider.virtual_available,
+                      in_person_available: provider.in_person_available
+                    },
+                    {
+                      diagnosis: patient.allDiagnoses || patient.condition,
+                      insurance: patient.insurance,
+                      location: patient.location || '',
+                      preferredModality: patient.preferredModality,
+                      preferredGender: patient.preferredGender
+                    }
+                  );
+                  
+                  return isOnProviderWaitlist || matchResult.matches;
+                });
+                
                 const actualWaitlistCount = patientsOnWaitlist.length;
+                const totalMatchCount = allMatchingPatients.length;
+                
+                // Get Supabase data for debugging
+                const providerPatientsSet = providerWaitlistMap.get(provider.provider_id);
+                
+                // Debug: Check for mismatches
+                if (provider.last_name === 'Thompson' || provider.last_name === 'Wilson' || provider.last_name === 'Johnson') {
+                  console.log(`\n=== ${provider.name} (${provider.provider_id}) ===`);
+                  console.log('Supabase patient IDs:', providerPatientsSet ? Array.from(providerPatientsSet) : []);
+                  console.log('Displayed patients:', patientsOnWaitlist.map(p => ({ id: p.id, name: p.name })));
+                  console.log('Count from Supabase:', actualWaitlistCount);
+                  console.log('Count displayed:', patientsOnWaitlist.length);
+                  
+                  // Check which patients might be missing
+                  const allPatientIds = waitlistPatients.map(p => p.id);
+                  console.log('All available patient IDs:', allPatientIds);
+                }
                 
                 // Debug logging
                 if (provider.last_name === 'Johnson' || provider.last_name === 'Wilson') {
@@ -362,8 +455,8 @@ const ResyWaitlist: React.FC = () => {
                 const potentialMatchesData = waitlistPatients.filter(patient => {
                   if (patient.excluded) return false;
                   
-                  // Skip if already on this provider's waitlist
-                  if (patient.provider && patient.provider.includes(provider.last_name)) return false;
+                  // Skip if already on this provider's waitlist (based on Supabase data)
+                  if (providerPatientsSet && providerPatientsSet.has(patient.id)) return false;
                   
                   // Check if matches criteria
                   const matchResult = calculateProviderPatientMatch(
@@ -386,47 +479,48 @@ const ResyWaitlist: React.FC = () => {
                   return matchResult.matches;
                 });
                 
-                const handRaisedCount = patientsOnWaitlist.filter(p => p.handRaised).length;
-                const potentialMatches = potentialMatchesData.length;
 
                 return (
                   <div
                     key={provider.provider_id}
-                    className={`flex-shrink-0 w-64 cursor-pointer relative transition-transform hover:-translate-y-1 ${
-                      expandedProviderId === provider.provider_id
-                        ? 'ring-2 ring-blue-600 rounded-lg'
+                    className={`flex-shrink-0 w-64 cursor-pointer relative transition-all hover:-translate-y-1 ${
+                      selectedProvider?.provider_id === provider.provider_id
+                        ? 'ring-2 ring-blue-600 rounded-lg transform -translate-y-1'
                         : ''
                     }`}
                     onClick={() => handleProviderCardClick(provider)}
                   >
-                    {/* Matching patients indicator */}
-                    {(actualWaitlistCount > 0 || potentialMatches > 0) && (
-                      <div className="absolute -top-3 -right-3 z-10">
+                    {/* Matching patients indicators */}
+                    <div className="absolute -top-3 -right-3 z-10 flex gap-2">
+                      {actualWaitlistCount > 0 && (
+                        <div className="bg-orange-500 text-white text-xs font-semibold rounded px-2 py-1 shadow-md">
+                          {actualWaitlistCount} waitlisted
+                        </div>
+                      )}
+                      {totalMatchCount > 0 && (
                         <div 
-                          className="bg-orange-500 text-white text-xs font-semibold rounded px-2 py-1 flex items-center justify-center relative group shadow-md"
+                          className="bg-blue-500 text-white text-xs font-semibold rounded px-2 py-1 shadow-md relative group"
                           onMouseEnter={() => setHoveredProviderId(provider.provider_id)}
                           onMouseLeave={() => setHoveredProviderId(null)}
                         >
-                          {actualWaitlistCount} waitlisted
+                          {totalMatchCount} {totalMatchCount === 1 ? 'match' : 'matches'}
                           
                           {/* Tooltip */}
                           {hoveredProviderId === provider.provider_id && (
                             <div className="absolute bottom-full right-0 mb-2 w-48 bg-gray-900 text-white text-xs rounded-lg p-2 shadow-lg">
                               <div className="space-y-1">
                                 <div className="flex justify-between">
-                                  <span>Hand Raised:</span>
-                                  <span className="font-bold">{handRaisedCount}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span>On Waitlist:</span>
+                                  <span>Waitlisted:</span>
                                   <span className="font-bold">{actualWaitlistCount}</span>
                                 </div>
-                                {potentialMatches > 0 && (
-                                  <div className="flex justify-between">
-                                    <span>Potential Matches:</span>
-                                    <span className="font-bold">{potentialMatches}</span>
-                                  </div>
-                                )}
+                                <div className="flex justify-between">
+                                  <span>Total Matches:</span>
+                                  <span className="font-bold">{totalMatchCount}</span>
+                                </div>
+                                <div className="flex justify-between text-gray-400">
+                                  <span>Additional Matches:</span>
+                                  <span>{totalMatchCount - actualWaitlistCount}</span>
+                                </div>
                                 {provider.availability?.thisWeek === 0 && (
                                   <div className="border-t pt-1 mt-1 text-red-400 font-medium">
                                     No slots available
@@ -437,8 +531,8 @@ const ResyWaitlist: React.FC = () => {
                             </div>
                           )}
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                     
                     <div className={`bg-white border rounded-lg p-4 hover:shadow-lg transition-shadow ${provider.availability?.thisWeek === 0 ? 'border-red-200 bg-red-50' : ''}`}>
                       <div className="flex items-start gap-3">
@@ -476,16 +570,62 @@ const ResyWaitlist: React.FC = () => {
                       <div className="mt-3">
                         <p className="text-xs font-medium text-gray-700 mb-1">Specialties:</p>
                         <div className="flex flex-wrap gap-1">
-                          {(provider.specialties || []).slice(0, 3).map((specialty, idx) => (
-                            <span key={idx} className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs">
-                              {specialty}
-                            </span>
-                          ))}
-                          {(provider.specialties || []).length > 3 && (
-                            <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
-                              +{(provider.specialties || []).length - 3}
-                            </span>
-                          )}
+                          {(() => {
+                            const isExpanded = expandedSpecialties.has(provider.provider_id);
+                            const specialtiesToShow = isExpanded 
+                              ? (provider.specialties || [])
+                              : (provider.specialties || []).slice(0, 3);
+                            
+                            return (
+                              <AnimatePresence mode="popLayout">
+                                {specialtiesToShow.map((specialty, idx) => (
+                                  <motion.span 
+                                    key={`${provider.provider_id}-${idx}`}
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.8 }}
+                                    transition={{ duration: 0.2, delay: idx * 0.05 }}
+                                    className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs"
+                                  >
+                                    {specialty}
+                                  </motion.span>
+                                ))}
+                                {(provider.specialties || []).length > 3 && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setExpandedSpecialties(prev => {
+                                        const newSet = new Set(prev);
+                                        if (newSet.has(provider.provider_id)) {
+                                          newSet.delete(provider.provider_id);
+                                        } else {
+                                          newSet.add(provider.provider_id);
+                                        }
+                                        return newSet;
+                                      });
+                                    }}
+                                    className={`px-2 py-1 rounded text-xs transition-all ${
+                                      isExpanded 
+                                        ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' 
+                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    } flex items-center gap-1`}
+                                  >
+                                    {isExpanded ? (
+                                      <>
+                                        <X className="w-3 h-3" />
+                                        Show less
+                                      </>
+                                    ) : (
+                                      <>
+                                        +{(provider.specialties || []).length - 3}
+                                        <ChevronDown className="w-3 h-3" />
+                                      </>
+                                    )}
+                                  </button>
+                                )}
+                              </AnimatePresence>
+                            );
+                          })()}
                         </div>
                       </div>
                       
@@ -514,7 +654,10 @@ const ResyWaitlist: React.FC = () => {
             onClose={() => {
               setExpandedProviderId(null);
               setSelectedProvider(null);
+              setSelectedTimeSlot(null);
             }}
+            onTimeSlotSelect={(slot) => setSelectedTimeSlot(slot)}
+            selectedTimeSlot={selectedTimeSlot}
           />
         )}
       </div>
@@ -536,17 +679,17 @@ const ResyWaitlist: React.FC = () => {
                 />
               </div>
 
-              {/* Hand Raised Filter */}
+              {/* Waitlisted Filter */}
               <button
                 onClick={() => setFilters({ ...filters, handRaised: !filters.handRaised })}
                 className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
                   filters.handRaised 
-                    ? 'bg-yellow-100 text-yellow-700 border-yellow-300' 
+                    ? 'bg-orange-100 text-orange-700 border-orange-300' 
                     : 'border hover:bg-gray-50'
                 }`}
               >
-                <HandMetal className="w-4 h-4" />
-                Hand Raised
+                <Clock className="w-4 h-4" />
+                Waitlisted
               </button>
 
               {/* Diagnosis Filter */}
@@ -627,7 +770,7 @@ const ResyWaitlist: React.FC = () => {
                 )}
               </h2>
               <p className="text-sm text-gray-600 mt-1">
-                {filteredPatients.length} patients match current filters
+                {filteredAndSortedPatients.length} patients match current filters
               </p>
             </div>
 
@@ -636,14 +779,14 @@ const ResyWaitlist: React.FC = () => {
                 <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
                 <span className="ml-2 text-gray-600">Loading patients...</span>
               </div>
-            ) : filteredPatients.length === 0 ? (
+            ) : filteredAndSortedPatients.length === 0 ? (
               <div className="text-center py-12">
                 <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-600">No patients match the current filters</p>
               </div>
             ) : (
               <div className="divide-y">
-                {filteredPatients.map((patient, index) => {
+                {filteredAndSortedPatients.map((patient, index) => {
                   const isSelected = selectedPatients.includes(patient.id);
                   return (
                     <motion.div
@@ -697,13 +840,6 @@ const ResyWaitlist: React.FC = () => {
                             <h3 className="font-medium text-gray-900">{patient.name}</h3>
                             
                             {/* Badges */}
-                            {patient.handRaised && (
-                              <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium flex items-center gap-1">
-                                <HandMetal className="w-3 h-3" />
-                                Hand Raised
-                              </span>
-                            )}
-                            
                             {selectedProvider && (() => {
                               const isOnProviderWaitlist = patient.provider && patient.provider.includes(selectedProvider.last_name);
                               
@@ -769,10 +905,6 @@ const ResyWaitlist: React.FC = () => {
                               {patient.preferredTimes.join(', ')}
                             </div>
                           </div>
-
-                          {patient.notes && (
-                            <p className="text-sm text-gray-500 mt-2 italic">{patient.notes}</p>
-                          )}
                         </div>
                       </div>
 
@@ -813,11 +945,14 @@ const ResyWaitlist: React.FC = () => {
         {showNotificationModal && (
           <NotificationModal
             selectedPatients={selectedPatients}
-            patients={filteredPatients.filter(p => selectedPatients.includes(p.id))}
+            patients={filteredAndSortedPatients.filter(p => selectedPatients.includes(p.id))}
+            selectedProvider={selectedProvider}
+            selectedTimeSlot={selectedTimeSlot}
             onClose={() => setShowNotificationModal(false)}
             onSend={() => {
               setSelectedPatients([]);
               setShowNotificationModal(false);
+              setSelectedTimeSlot(null);
             }}
           />
         )}

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Notification Modal Date Fix</title>
+    <script>
+        // Test the date parsing logic
+        function parseLocalDate(dateString) {
+            try {
+                const [year, month, day] = dateString.split('-').map(Number);
+                return new Date(year, month - 1, day); // month is 0-indexed
+            } catch (error) {
+                console.error('Error parsing date:', dateString, error);
+                return new Date(); // Fallback to current date
+            }
+        }
+
+        // Test cases
+        const testCases = [
+            '2024-01-15',
+            '2024-12-25',
+            '2024-02-29', // Leap year
+            '2024-06-15',
+            'invalid-date',
+            '',
+            null
+        ];
+
+        console.log('Testing date parsing logic:');
+        console.log('==========================');
+        
+        testCases.forEach(testDate => {
+            console.log(`\nInput: "${testDate}"`);
+            try {
+                const parsed = parseLocalDate(testDate);
+                console.log(`Output: ${parsed.toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                })}`);
+                console.log(`Timezone offset: ${parsed.getTimezoneOffset()} minutes`);
+            } catch (e) {
+                console.log(`Error: ${e.message}`);
+            }
+        });
+
+        // Compare with direct Date constructor
+        console.log('\n\nComparing with new Date() constructor:');
+        console.log('======================================');
+        const testDate = '2024-01-15';
+        
+        console.log('\nUsing new Date(string):');
+        const directDate = new Date(testDate);
+        console.log(`Input: ${testDate}`);
+        console.log(`Output: ${directDate.toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        })}`);
+        console.log(`UTC: ${directDate.toUTCString()}`);
+        console.log(`Local: ${directDate.toString()}`);
+        
+        console.log('\nUsing parseLocalDate:');
+        const parsedDate = parseLocalDate(testDate);
+        console.log(`Input: ${testDate}`);
+        console.log(`Output: ${parsedDate.toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        })}`);
+        console.log(`UTC: ${parsedDate.toUTCString()}`);
+        console.log(`Local: ${parsedDate.toString()}`);
+    </script>
+</head>
+<body>
+    <h1>Date Parsing Test</h1>
+    <p>Check the browser console for test results.</p>
+    <p>This tests the date parsing logic to ensure dates are not showing one day behind.</p>
+</body>
+</html>

@@ -70,7 +70,7 @@ To test that providers can only edit their own specialties:
 
 - All passwords are for demo purposes only
 - In a production environment, passwords would be properly hashed and stored securely
-- The `provider@example.com` account is an alias for Dr. Sarah Johnson's account
+- The `provider@example.com` account with password `provider123` is a generic demo provider account
 - Provider IDs are mapped as follows:
   - Dr. Sarah Johnson: ID 1
   - Dr. Michael Chen: ID 2

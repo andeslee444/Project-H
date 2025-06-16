@@ -24,6 +24,8 @@ interface ProviderAvailabilityProps {
   providerName: string;
   isOpen: boolean;
   onClose: () => void;
+  onTimeSlotSelect?: (slot: TimeSlot) => void;
+  selectedTimeSlot?: TimeSlot | null;
 }
 
 // CSS for hiding scrollbar
@@ -41,7 +43,9 @@ const ProviderAvailability: React.FC<ProviderAvailabilityProps> = ({
   providerId,
   providerName,
   isOpen,
-  onClose
+  onClose,
+  onTimeSlotSelect,
+  selectedTimeSlot
 }) => {
   console.log('ProviderAvailability component rendered:', { providerId, providerName, isOpen });
   // Initialize with next weekday if today is weekend
@@ -300,10 +304,17 @@ const ProviderAvailability: React.FC<ProviderAvailabilityProps> = ({
                             transition={{ delay: index * 0.02 }}
                             whileHover={{ scale: 1.05, y: -3 }}
                             whileTap={{ scale: 0.95 }}
-                            className="flex-shrink-0 px-5 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 text-sm font-medium shadow-md hover:shadow-xl"
+                            className={`flex-shrink-0 px-5 py-3 rounded-2xl transition-all duration-200 text-sm font-medium shadow-md hover:shadow-xl ${
+                              selectedTimeSlot?.id === slot.id
+                                ? 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 ring-2 ring-green-400'
+                                : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700'
+                            }`}
                             onClick={() => {
                               // Handle slot selection
                               console.log('Selected slot:', slot);
+                              if (onTimeSlotSelect) {
+                                onTimeSlotSelect(slot);
+                              }
                             }}
                           >
                             <div className="flex flex-col items-center gap-1">
